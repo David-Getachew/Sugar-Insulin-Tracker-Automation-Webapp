@@ -95,7 +95,7 @@ const Forms = () => {
       sugarLevel: undefined,
       symptoms: "",
       actionsTaken: "",
-      medicationsGiven: [{ name: "", dose: undefined }],
+      medicationsGiven: [], // Empty by default like telegram handles
       notes: "",
     },
   });
@@ -128,7 +128,7 @@ const Forms = () => {
         sugarLevel: undefined,
         symptoms: "",
         actionsTaken: "",
-        medicationsGiven: [{ name: "", dose: undefined }],
+        medicationsGiven: [], // Empty by default
         notes: "",
       });
     } catch (error) {

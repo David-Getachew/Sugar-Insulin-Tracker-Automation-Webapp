@@ -16,9 +16,9 @@ import { showSuccess } from "@/utils/toast";
 const profileFormSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters" }),
   email: z.string().email({ message: "Please enter a valid email address" }),
-  telegramHandles: z.array(
+  telegramIds: z.array(
     z.object({
-      handle: z.string().min(1, { message: "Telegram handle is required" }),
+      handle: z.string().min(1, { message: "Telegram ID is required" }),
       label: z.string().optional(),
     })
   ).min(0),
@@ -30,11 +30,11 @@ const profileFormSchema = z.object({
     })
   ).min(0),
 }).refine(data => {
-  // At least one of telegramHandles or secondaryContacts must have items
-  return data.telegramHandles.length > 0 || data.secondaryContacts.length > 0;
+  // At least one of telegramIds or secondaryContacts must have items
+  return data.telegramIds.length > 0 || data.secondaryContacts.length > 0;
 }, {
-  message: "At least one Telegram handle or secondary contact is required",
-  path: ["telegramHandles"], // This will show the error on the telegramHandles field
+  message: "At least one Telegram ID or secondary contact is required",
+  path: ["telegramIds"], // This will show the error on the telegramIds field
 });
 
 // Password form schema
@@ -58,7 +58,7 @@ const Profile = () => {
   const defaultValues: ProfileFormValues = {
     name: "John Doe",
     email: "john.doe@example.com",
-    telegramHandles: [],
+    telegramIds: [],
     secondaryContacts: [],
   };
 
@@ -107,19 +107,19 @@ const Profile = () => {
     }
   };
 
-  // Add a new telegram handle field
-  const addTelegramHandle = () => {
-    const currentHandles = profileForm.getValues("telegramHandles");
-    profileForm.setValue("telegramHandles", [
-      ...currentHandles,
+  // Add a new telegram ID field
+  const addTelegramId = () => {
+    const currentIds = profileForm.getValues("telegramIds");
+    profileForm.setValue("telegramIds", [
+      ...currentIds,
       { handle: "", label: "" }
     ]);
   };
 
-  // Remove a telegram handle field
-  const removeTelegramHandle = (index: number) => {
-    const currentHandles = profileForm.getValues("telegramHandles");
-    profileForm.setValue("telegramHandles", currentHandles.filter((_, i) => i !== index));
+  // Remove a telegram ID field
+  const removeTelegramId = (index: number) => {
+    const currentIds = profileForm.getValues("telegramIds");
+    profileForm.setValue("telegramIds", currentIds.filter((_, i) => i !== index));
   };
 
   // Add a new secondary contact field
@@ -213,13 +213,16 @@ const Profile = () => {
                     <div className="space-y-4">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center">
-                          <h3 className="text-lg font-medium text-[#0f172a]">Telegram Handles</h3>
-                          <TooltipProvider>
+                          <h3 className="text-lg font-medium text-[#0f172a]">Telegram IDs</h3>
+                          <TooltipProvider delayDuration={0}>
                             <Tooltip>
                               <TooltipTrigger asChild>
-                                <HelpCircle className="h-4 w-4 ml-2 text-[#475569]" />
+                                <HelpCircle className="h-4 w-4 ml-2 text-[#475569] cursor-help" />
                               </TooltipTrigger>
-                              <TooltipContent className="max-w-xs bg-white border border-[#e2e8f0]">
+                              <TooltipContent 
+                                className="max-w-xs bg-white border border-[#e2e8f0]" 
+                                side="right"
+                              >
                                 <p className="text-[#475569]">
                                   To get your Telegram ID, message the @userinfobot on Telegram. 
                                   The bot will reply with your ID which you can use here.
@@ -232,31 +235,31 @@ const Profile = () => {
                           type="button" 
                           variant="outline" 
                           size="sm" 
-                          onClick={addTelegramHandle}
+                          onClick={addTelegramId}
                           className="border-[#0f766e] text-[#0f766e] hover:bg-[#14b8a6] hover:text-white"
                         >
                           <PlusCircle className="h-4 w-4 mr-2" />
-                          Add Handle
+                          Add ID
                         </Button>
                       </div>
                       
-                      {profileForm.watch("telegramHandles").length === 0 && (
+                      {profileForm.watch("telegramIds").length === 0 && (
                         <div className="text-sm text-[#475569] italic">
-                          No Telegram handles added. Add at least one handle or a secondary contact.
+                          No Telegram IDs added. Add at least one ID or a secondary contact.
                         </div>
                       )}
                       
-                      {profileForm.watch("telegramHandles").map((_, index) => (
+                      {profileForm.watch("telegramIds").map((_, index) => (
                         <div key={index} className="flex items-end gap-4">
                           <FormField
                             control={profileForm.control}
-                            name={`telegramHandles.${index}.handle`}
+                            name={`telegramIds.${index}.handle`}
                             render={({ field }) => (
                               <FormItem className="flex-1">
-                                <FormLabel className="text-[#475569]">Handle</FormLabel>
+                                <FormLabel className="text-[#475569]">ID</FormLabel>
                                 <FormControl>
                                   <Input 
-                                    placeholder="@username" 
+                                    placeholder="Telegram ID" 
                                     {...field} 
                                     className="border-[#cbd5e1] focus:ring-[#0f766e] focus:border-[#0f766e]"
                                   />
@@ -268,7 +271,7 @@ const Profile = () => {
                           
                           <FormField
                             control={profileForm.control}
-                            name={`telegramHandles.${index}.label`}
+                            name={`telegramIds.${index}.label`}
                             render={({ field }) => (
                               <FormItem className="flex-1">
                                 <FormLabel className="text-[#475569]">Label (Optional)</FormLabel>
@@ -288,9 +291,9 @@ const Profile = () => {
                             type="button" 
                             variant="ghost" 
                             size="icon" 
-                            onClick={() => removeTelegramHandle(index)}
+                            onClick={() => removeTelegramId(index)}
                             className="mb-2 hover:bg-[#14b8a6] hover:text-[#0f766e]"
-                            disabled={profileForm.watch("telegramHandles").length <= 1 && profileForm.watch("secondaryContacts").length === 0}
+                            disabled={profileForm.watch("telegramIds").length <= 1 && profileForm.watch("secondaryContacts").length === 0}
                           >
                             <Trash2 className="h-4 w-4 text-[#dc2626]" />
                           </Button>
@@ -315,7 +318,7 @@ const Profile = () => {
                       
                       {profileForm.watch("secondaryContacts").length === 0 && (
                         <div className="text-sm text-[#475569] italic">
-                          No secondary contacts added. Add at least one contact or a Telegram handle.
+                          No secondary contacts added. Add at least one contact or a Telegram ID.
                         </div>
                       )}
                       
@@ -329,7 +332,7 @@ const Profile = () => {
                               size="icon" 
                               onClick={() => removeSecondaryContact(index)}
                               className="hover:bg-[#14b8a6] hover:text-[#0f766e]"
-                              disabled={profileForm.watch("secondaryContacts").length <= 1 && profileForm.watch("telegramHandles").length === 0}
+                              disabled={profileForm.watch("secondaryContacts").length <= 1 && profileForm.watch("telegramIds").length === 0}
                             >
                               <Trash2 className="h-4 w-4 text-[#dc2626]" />
                             </Button>

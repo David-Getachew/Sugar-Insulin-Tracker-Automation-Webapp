@@ -43,7 +43,7 @@ const SugarLevelChart = () => {
                 style={{ backgroundColor: entry.color }}
               ></span>
               <span className="text-[#475569]">
-                {entry.name === 'morning' ? 'Morning' : 'Evening'}: 
+                {entry.dataKey === 'morning' ? 'Morning' : 'Evening'}: 
               </span>
               <span className="font-medium ml-1">{entry.value}</span>
             </p>
