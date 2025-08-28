@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format, addMonths } from "date-fns";
-import { Calendar as CalendarIcon, ChevronDown, ChevronUp, ChevronsUpDown } from "lucide-react";
+import { Calendar as CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { DateRange } from "react-day-picker";
 
@@ -41,10 +41,6 @@ const generateMockData = (days: number) => {
 const ReadingsTable = () => {
   const [date, setDate] = useState<Date | undefined>(undefined);
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
-  const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'ascending' | 'descending' } | null>({
-    key: 'date',
-    direction: 'descending',
-  });
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
   
@@ -64,44 +60,10 @@ const ReadingsTable = () => {
       )
     : allData;
   
-  // Sort data based on sort configuration
-  const sortedData = [...filteredData].sort((a, b) => {
-    if (!sortConfig) return 0;
-    
-    const key = sortConfig.key as keyof typeof a;
-    
-    if (a[key] < b[key]) {
-      return sortConfig.direction === 'ascending' ? -1 : 1;
-    }
-    if (a[key] > b[key]) {
-      return sortConfig.direction === 'ascending' ? 1 : -1;
-    }
-    return 0;
-  });
-  
   // Pagination
-  const totalPages = Math.ceil(sortedData.length / itemsPerPage);
+  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedData = sortedData.slice(startIndex, startIndex + itemsPerPage);
-  
-  const requestSort = (key: string) => {
-    let direction: 'ascending' | 'descending' = 'ascending';
-    
-    if (sortConfig && sortConfig.key === key && sortConfig.direction === 'ascending') {
-      direction = 'descending';
-    }
-    
-    setSortConfig({ key, direction });
-    setCurrentPage(1); // Reset to first page when sorting
-  };
-  
-  const getSortIcon = (key: string) => {
-    if (!sortConfig || sortConfig.key !== key) {
-      return <ChevronsUpDown className="h-4 w-4 text-gray-400" />;
-    }
-    
-    return sortConfig.direction === 'ascending' ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />;
-  };
+  const paginatedData = filteredData.slice(startIndex, startIndex + itemsPerPage);
   
   const clearFilters = () => {
     setDate(undefined);
@@ -184,71 +146,11 @@ const ReadingsTable = () => {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[120px]">
-                  <div className="flex items-center">
-                    Date
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="ml-1 h-6 w-6 p-0"
-                      onClick={() => requestSort('date')}
-                    >
-                      {getSortIcon('date')}
-                    </Button>
-                  </div>
-                </TableHead>
-                <TableHead>
-                  <div className="flex items-center">
-                    Morning Sugar
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="ml-1 h-6 w-6 p-0"
-                      onClick={() => requestSort('morningSugar')}
-                    >
-                      {getSortIcon('morningSugar')}
-                    </Button>
-                  </div>
-                </TableHead>
-                <TableHead>
-                  <div className="flex items-center">
-                    Night Sugar
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="ml-1 h-6 w-6 p-0"
-                      onClick={() => requestSort('nightSugar')}
-                    >
-                      {getSortIcon('nightSugar')}
-                    </Button>
-                  </div>
-                </TableHead>
-                <TableHead>
-                  <div className="flex items-center">
-                    Morning Dose
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="ml-1 h-6 w-6 p-0"
-                      onClick={() => requestSort('morningDose')}
-                    >
-                      {getSortIcon('morningDose')}
-                    </Button>
-                  </div>
-                </TableHead>
-                <TableHead>
-                  <div className="flex items-center">
-                    Night Dose
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="ml-1 h-6 w-6 p-0"
-                      onClick={() => requestSort('nightDose')}
-                    >
-                      {getSortIcon('nightDose')}
-                    </Button>
-                  </div>
-                </TableHead>
+                <TableHead className="w-[120px]">Date</TableHead>
+                <TableHead>Morning Sugar</TableHead>
+                <TableHead>Night Sugar</TableHead>
+                <TableHead>Morning Dose</TableHead>
+                <TableHead>Night Dose</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -277,7 +179,7 @@ const ReadingsTable = () => {
         {totalPages > 1 && (
           <div className="flex items-center justify-between mt-4">
             <div className="text-sm text-muted-foreground">
-              Showing {startIndex + 1}-{Math.min(startIndex + itemsPerPage, sortedData.length)} of {sortedData.length} results
+              Showing {startIndex + 1}-{Math.min(startIndex + itemsPerPage, filteredData.length)} of {filteredData.length} results
             </div>
             <div className="flex items-center space-x-2">
               <Button

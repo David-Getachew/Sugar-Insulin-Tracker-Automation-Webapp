@@ -8,7 +8,8 @@ import {
   LogOut,
   Menu,
   X,
-  ChevronLeft
+  ChevronLeft,
+  ChevronRight
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { showSuccess } from "@/utils/toast";
@@ -52,9 +53,9 @@ const MainLayout = ({ children }: MainLayoutProps) => {
             variant="ghost" 
             size="icon" 
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="ml-auto"
+            className="ml-auto rounded-full hover:bg-gray-100"
           >
-            {sidebarOpen ? <ChevronLeft className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            {sidebarOpen ? <ChevronLeft className="h-5 w-5" /> : <ChevronRight className="h-5 w-5" />}
           </Button>
         </div>
         
@@ -83,7 +84,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
           <Button 
             variant="ghost" 
             className={cn(
-              "w-full flex items-center text-gray-600 hover:text-red-600",
+              "w-full flex items-center hover:bg-red-50 hover:text-red-600",
               sidebarOpen ? "justify-start" : "justify-center"
             )}
             onClick={handleLogout}
