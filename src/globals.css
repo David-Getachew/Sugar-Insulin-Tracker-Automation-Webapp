@@ -2,8 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700&family=Roboto:wght@400;500&family=JetBrains+Mono:wght@400;500;600&display=swap');
-
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -75,76 +73,30 @@
 
   body {
     @apply bg-background text-foreground;
-    font-family: 'Inter', sans-serif;
-  }
-
-  h1, h2, h3, h4, h5, h6 {
-    font-family: 'Poppins', sans-serif;
-  }
-
-  .data-number {
-    font-family: 'JetBrains Mono', monospace;
   }
 }
 
 /* Custom styles for the new theme */
-.bg-primary {
-  background-color: #0f766e;
+.bg-sidebar {
+  background-color: #115e59;
 }
 
-.bg-primary-light {
-  background-color: #14b8a6;
+.bg-sidebar-hover {
+  background-color: #136d66;
 }
 
-.bg-primary-dark {
-  background-color: #0d5c58;
-}
-
-.bg-accent {
-  background-color: #f59e0b;
-}
-
-.bg-background-light {
-  background-color: #f9fafb;
-}
-
-.text-primary {
-  color: #0f766e;
-}
-
-.text-primary-light {
-  color: #14b8a6;
-}
-
-.text-primary-dark {
-  color: #0d5c58;
+.bg-sidebar-active {
+  background-color: #0d9488;
 }
 
 .text-accent {
   color: #f59e0b;
 }
 
-.text-background-light {
-  color: #f9fafb;
+.bg-accent {
+  background-color: #f59e0b;
 }
 
-.text-primary-text {
-  color: #0f172a;
-}
-
-.text-secondary-text {
-  color: #475569;
-}
-
-.border-light {
-  border-color: #e2e8f0;
-}
-
-.border-input {
-  border-color: #cbd5e1;
-}
-
-.focus-primary:focus {
-  outline: 2px solid #0f766e;
-  outline-offset: 2px;
+.hover\:bg-accent:hover {
+  background-color: #f59e0b;
 }

@@ -30,17 +30,17 @@ const MainLayout = ({ children }: MainLayoutProps) => {
   return (
     <div className="min-h-screen bg-[#f9fafb] flex">
       {/* Sidebar */}
-      <div className="bg-[#0f766e] flex flex-col w-20 sticky top-0 h-screen">
+      <div className="bg-[#115e59] flex flex-col w-20 sticky top-0 h-screen">
         <nav className="flex-1 py-4">
           {navItems.map((item) => (
             <Link
               key={item.path}
               to={item.path}
               className={`
-                flex items-center justify-center px-2 py-4 text-sm font-medium transition-colors
+                flex items-center justify-center px-2 py-4 text-sm font-medium transition-colors duration-300
                 ${location.pathname === item.path
-                  ? "bg-[#f59e0b] text-white"
-                  : "text-white hover:bg-[#0d5c58]"
+                  ? "bg-[#0d9488] text-white"
+                  : "text-white hover:bg-[#136d66]"
                 }
               `}
             >
@@ -55,7 +55,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
         <div className="p-2 border-t border-[#0d5c58]">
           <Button 
             variant="ghost" 
-            className="w-full flex items-center justify-center p-2 hover:bg-[#0d5c58] text-white"
+            className="w-full flex items-center justify-center p-2 hover:bg-[#136d66] text-red-400 hover:text-white transition-colors duration-300"
             onClick={handleLogout}
           >
             <div className="flex flex-col items-center">
