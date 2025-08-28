@@ -55,6 +55,23 @@ const ReadingsTable = () => {
   // Generate 100 days of mock data for pagination demo
   const allData = generateMockData(100);
   
+  // Reset other filter when one is selected
+  const handleDateSelect = (selectedDate: Date | undefined) => {
+    setDate(selectedDate);
+    setDateRange(undefined);
+    setCurrentPage(1);
+    // Reset sort order when filtering by specific date
+    if (selectedDate) {
+      setSortOrder("desc");
+    }
+  };
+  
+  const handleDateRangeSelect = (range: DateRange | undefined) => {
+    setDateRange(range);
+    setDate(undefined);
+    setCurrentPage(1);
+  };
+  
   // Filter data based on selected date or date range
   const filteredData = dateRange?.from && dateRange?.to
     ? allData.filter(item => 
@@ -68,8 +85,11 @@ const ReadingsTable = () => {
       )
     : allData;
   
-  // Sort data based on date
+  // Sort data based on date (only when not filtering by specific date)
   const sortedData = [...filteredData].sort((a, b) => {
+    // Don't sort when a specific date is selected
+    if (date) return 0;
+    
     return sortOrder === "asc" 
       ? a.date.getTime() - b.date.getTime()
       : b.date.getTime() - a.date.getTime();
@@ -84,6 +104,7 @@ const ReadingsTable = () => {
     setDate(undefined);
     setDateRange(undefined);
     setCurrentPage(1);
+    setSortOrder("desc");
   };
 
   // Function to check if a sugar level is abnormal
@@ -91,25 +112,32 @@ const ReadingsTable = () => {
     return value < 70 || value > 180;
   };
 
-  // Toggle sort order
+  // Toggle sort order (only available when not filtering by specific date)
   const toggleSortOrder = () => {
-    setSortOrder(sortOrder === "asc" ? "desc" : "asc");
-    setCurrentPage(1); // Reset to first page when sorting changes
+    if (!date) {
+      setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+      setCurrentPage(1); // Reset to first page when sorting changes
+    }
   };
+
+  // Show sort button only when not filtering by specific date
+  const showSortButton = !date;
 
   return (
     <Card className="w-full bg-white border border-[#e2e8f0]">
       <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between pb-2 gap-4">
         <CardTitle className="text-lg font-medium text-[#0f766e]">Readings History</CardTitle>
         <div className="flex flex-wrap items-center gap-2">
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={toggleSortOrder}
-            className="border-[#cbd5e1]"
-          >
-            <ArrowUpDown className="h-4 w-4 text-[#475569]" />
-          </Button>
+          {showSortButton && (
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={toggleSortOrder}
+              className="border-[#cbd5e1]"
+            >
+              <ArrowUpDown className="h-4 w-4 text-[#475569]" />
+            </Button>
+          )}
           
           <Popover>
             <PopoverTrigger asChild>
@@ -128,7 +156,7 @@ const ReadingsTable = () => {
               <Calendar
                 mode="single"
                 selected={date}
-                onSelect={setDate}
+                onSelect={handleDateSelect}
                 initialFocus
               />
             </PopoverContent>
@@ -162,7 +190,7 @@ const ReadingsTable = () => {
               <Calendar
                 mode="range"
                 selected={dateRange}
-                onSelect={setDateRange}
+                onSelect={handleDateRangeSelect}
                 initialFocus
                 numberOfMonths={2}
               />
