@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format } from "date-fns";
-import { Calendar as CalendarIcon, AlertTriangle, ArrowUpDown } from "lucide-react";
+import { Calendar as CalendarIcon, AlertTriangle, ArrowUpDown, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { DateRange } from "react-day-picker";
 
@@ -50,6 +50,8 @@ const ReadingsTable = () => {
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const [currentPage, setCurrentPage] = useState(1);
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+  const [openDatePicker, setOpenDatePicker] = useState(false);
+  const [openDateRangePicker, setOpenDateRangePicker] = useState(false);
   const itemsPerPage = 7;
   
   // Generate 100 days of mock data for pagination demo
@@ -64,12 +66,17 @@ const ReadingsTable = () => {
     if (selectedDate) {
       setSortOrder("desc");
     }
+    setOpenDatePicker(false); // Close the date picker after selection
   };
   
   const handleDateRangeSelect = (range: DateRange | undefined) => {
     setDateRange(range);
     setDate(undefined);
     setCurrentPage(1);
+    // Keep the picker open for range selection until both dates are selected
+    if (range?.to) {
+      setOpenDateRangePicker(false);
+    }
   };
   
   // Filter data based on selected date or date range
@@ -133,19 +140,23 @@ const ReadingsTable = () => {
               variant="outline"
               size="icon"
               onClick={toggleSortOrder}
-              className="border-[#cbd5e1]"
+              className={cn(
+                "border-[#cbd5e1]",
+                sortOrder !== "desc" && "bg-[#0f766e] text-white"
+              )}
             >
-              <ArrowUpDown className="h-4 w-4 text-[#475569]" />
+              <ArrowUpDown className="h-4 w-4" />
             </Button>
           )}
           
-          <Popover>
+          <Popover open={openDatePicker} onOpenChange={setOpenDatePicker}>
             <PopoverTrigger asChild>
               <Button
-                variant="outline"
+                variant={date ? "default" : "outline"}
                 className={cn(
                   "justify-start text-left font-normal",
-                  !date && "text-[#475569]"
+                  !date && "text-[#475569]",
+                  date && "bg-[#0f766e] text-white hover:bg-[#0d5c58]"
                 )}
               >
                 <CalendarIcon className="mr-2 h-4 w-4" />
@@ -162,13 +173,14 @@ const ReadingsTable = () => {
             </PopoverContent>
           </Popover>
           
-          <Popover>
+          <Popover open={openDateRangePicker} onOpenChange={setOpenDateRangePicker}>
             <PopoverTrigger asChild>
               <Button
-                variant="outline"
+                variant={dateRange?.from ? "default" : "outline"}
                 className={cn(
                   "justify-start text-left font-normal",
-                  !dateRange?.from && "text-[#475569]"
+                  !dateRange?.from && "text-[#475569]",
+                  dateRange?.from && "bg-[#0f766e] text-white hover:bg-[#0d5c58]"
                 )}
               >
                 <CalendarIcon className="mr-2 h-4 w-4" />
@@ -198,7 +210,13 @@ const ReadingsTable = () => {
           </Popover>
           
           {(date || dateRange?.from) && (
-            <Button variant="ghost" onClick={clearFilters} size="sm">
+            <Button 
+              variant="outline" 
+              onClick={clearFilters} 
+              size="sm"
+              className="flex items-center gap-1"
+            >
+              <X className="h-4 w-4" />
               Clear
             </Button>
           )}
