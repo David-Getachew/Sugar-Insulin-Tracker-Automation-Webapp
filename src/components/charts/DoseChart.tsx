@@ -32,7 +32,7 @@ const DoseChart = () => {
   
   return (
     <Card className="w-full bg-white border border-[#e2e8f0]">
-      <CardHeader className="flex flex-row items-center justify-between pb-2">
+      <CardHeader className="flex flex-row items-center justify-between pb-4">
         <div>
           <h3 className="text-lg font-medium text-[#0f766e]">Dose Tracking</h3>
           <p className="text-sm text-[#475569] mt-1">
