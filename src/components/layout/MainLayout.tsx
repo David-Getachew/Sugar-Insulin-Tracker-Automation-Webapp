@@ -5,12 +5,12 @@ import {
   LayoutDashboard, 
   FileInput, 
   UserCircle, 
-  LogOut, 
-  Menu, 
-  X 
+  LogOut,
+  Menu,
+  X,
+  ChevronLeft
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useIsMobile } from "@/hooks/use-mobile";
 import { showSuccess } from "@/utils/toast";
 
 interface MainLayoutProps {
@@ -20,111 +20,92 @@ interface MainLayoutProps {
 const MainLayout = ({ children }: MainLayoutProps) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const isMobile = useIsMobile();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
 
   const handleLogout = () => {
-    // This will be replaced with actual logout logic when we integrate Supabase
     showSuccess("Successfully logged out");
     navigate("/login");
   };
 
   const navItems = [
-    { path: "/dashboard", label: "Dashboard", icon: <LayoutDashboard className="mr-2 h-4 w-4" /> },
-    { path: "/forms", label: "Forms", icon: <FileInput className="mr-2 h-4 w-4" /> },
-    { path: "/profile", label: "Profile", icon: <UserCircle className="mr-2 h-4 w-4" /> },
+    { path: "/dashboard", label: "Dashboard", icon: <LayoutDashboard className="h-5 w-5" /> },
+    { path: "/forms", label: "Forms", icon: <FileInput className="h-5 w-5" /> },
+    { path: "/profile", label: "Profile", icon: <UserCircle className="h-5 w-5" /> },
   ];
 
-  const toggleMobileMenu = () => {
-    setMobileMenuOpen(!mobileMenuOpen);
-  };
-
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
-      {/* Header */}
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
-        <div className="container mx-auto px-4 py-3 flex justify-between items-center">
-          <Link to="/dashboard" className="text-xl font-bold text-primary">
-            Sugar & Insulin Tracker
-          </Link>
-          
-          {isMobile ? (
-            <Button variant="ghost" size="icon" onClick={toggleMobileMenu}>
-              {mobileMenuOpen ? <X /> : <Menu />}
-            </Button>
-          ) : (
-            <nav className="flex items-center space-x-4">
-              {navItems.map((item) => (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  className={cn(
-                    "flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors",
-                    location.pathname === item.path
-                      ? "bg-primary text-primary-foreground"
-                      : "text-gray-600 hover:bg-gray-100"
-                  )}
-                >
-                  {item.icon}
-                  {item.label}
-                </Link>
-              ))}
-              <Button 
-                variant="ghost" 
-                className="flex items-center text-gray-600 hover:text-red-600"
-                onClick={handleLogout}
-              >
-                <LogOut className="mr-2 h-4 w-4" />
-                Logout
-              </Button>
-            </nav>
+    <div className="min-h-screen bg-gray-50 flex">
+      {/* Sidebar */}
+      <div 
+        className={cn(
+          "bg-white border-r border-gray-200 flex flex-col transition-all duration-300",
+          sidebarOpen ? "w-64" : "w-20"
+        )}
+      >
+        <div className="flex items-center justify-between p-4 border-b border-gray-200">
+          {sidebarOpen && (
+            <Link to="/dashboard" className="text-xl font-bold text-primary whitespace-nowrap">
+              Sugar & Insulin Tracker
+            </Link>
           )}
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            className="ml-auto"
+          >
+            {sidebarOpen ? <ChevronLeft className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </Button>
         </div>
         
-        {/* Mobile menu */}
-        {isMobile && mobileMenuOpen && (
-          <div className="bg-white border-b border-gray-200 py-2">
-            <nav className="container mx-auto px-4 flex flex-col space-y-2">
-              {navItems.map((item) => (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  className={cn(
-                    "flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors",
-                    location.pathname === item.path
-                      ? "bg-primary text-primary-foreground"
-                      : "text-gray-600 hover:bg-gray-100"
-                  )}
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  {item.icon}
-                  {item.label}
-                </Link>
-              ))}
-              <Button 
-                variant="ghost" 
-                className="flex items-center justify-start text-gray-600 hover:text-red-600"
-                onClick={handleLogout}
-              >
-                <LogOut className="mr-2 h-4 w-4" />
-                Logout
-              </Button>
-            </nav>
-          </div>
-        )}
-      </header>
+        <nav className="flex-1 py-4">
+          {navItems.map((item) => (
+            <Link
+              key={item.path}
+              to={item.path}
+              className={cn(
+                "flex items-center px-4 py-3 text-sm font-medium transition-colors",
+                location.pathname === item.path
+                  ? "bg-primary text-primary-foreground"
+                  : "text-gray-600 hover:bg-gray-100",
+                sidebarOpen ? "justify-start" : "justify-center"
+              )}
+            >
+              <span className={cn(sidebarOpen ? "mr-3" : "mr-0")}>
+                {item.icon}
+              </span>
+              {sidebarOpen && <span>{item.label}</span>}
+            </Link>
+          ))}
+        </nav>
+        
+        <div className="p-4 border-t border-gray-200">
+          <Button 
+            variant="ghost" 
+            className={cn(
+              "w-full flex items-center text-gray-600 hover:text-red-600",
+              sidebarOpen ? "justify-start" : "justify-center"
+            )}
+            onClick={handleLogout}
+          >
+            <LogOut className={cn("h-5 w-5", sidebarOpen ? "mr-3" : "mr-0")} />
+            {sidebarOpen && <span>Logout</span>}
+          </Button>
+        </div>
+      </div>
 
       {/* Main content */}
-      <main className="flex-1 container mx-auto px-4 py-6">
-        {children}
-      </main>
+      <div className="flex-1 flex flex-col">
+        <main className="flex-1 container mx-auto px-4 py-6">
+          {children}
+        </main>
 
-      {/* Footer */}
-      <footer className="bg-white border-t border-gray-200 py-4">
-        <div className="container mx-auto px-4 text-center text-sm text-gray-500">
-          &copy; {new Date().getFullYear()} Sugar & Insulin Tracker
-        </div>
-      </footer>
+        <footer className="bg-white border-t border-gray-200 py-4">
+          <div className="container mx-auto px-4 text-center text-sm text-gray-500">
+            &copy; {new Date().getFullYear()} Sugar & Insulin Tracker
+          </div>
+        </footer>
+      </div>
     </div>
   );
 };

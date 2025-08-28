@@ -5,15 +5,12 @@ import InsulinDoseChart from "@/components/charts/InsulinDoseChart";
 import ReadingsTable from "@/components/tables/ReadingsTable";
 
 const Dashboard = () => {
-  // Mock user data - will be replaced with actual user data from Supabase
   const [userData, setUserData] = useState({
     name: "John Doe",
     email: "john.doe@example.com",
   });
 
-  // Simulate loading user data
   useEffect(() => {
-    // This would be a Supabase query in the real implementation
     const timer = setTimeout(() => {
       setUserData({
         name: "John Doe",
@@ -26,7 +23,7 @@ const Dashboard = () => {
 
   return (
     <MainLayout>
-      <div className="space-y-6">
+      <div className="space-y-8">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Welcome, {userData.name}</h1>
           <p className="text-muted-foreground">
@@ -34,12 +31,20 @@ const Dashboard = () => {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <SugarLevelChart />
-          <InsulinDoseChart />
+        <div className="space-y-8">
+          <div>
+            <h2 className="text-xl font-semibold mb-4">Sugar Levels</h2>
+            <SugarLevelChart />
+          </div>
+
+          <div>
+            <h2 className="text-xl font-semibold mb-4">Insulin Doses</h2>
+            <InsulinDoseChart />
+          </div>
         </div>
 
-        <div className="mt-8">
+        <div>
+          <h2 className="text-xl font-semibold mb-4">Readings History</h2>
           <ReadingsTable />
         </div>
       </div>

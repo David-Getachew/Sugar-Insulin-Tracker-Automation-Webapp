@@ -8,15 +8,22 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { format } from "date-fns";
+import { Calendar as CalendarIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { showSuccess } from "@/utils/toast";
 
 const formSchema = z.object({
+  date: z.date({
+    required_error: "Please select a date",
+  }),
   morningSugar: z.coerce.number().min(0, { message: "Value must be positive" }).optional(),
   nightSugar: z.coerce.number().min(0, { message: "Value must be positive" }).optional(),
   morningDose: z.coerce.number().min(0, { message: "Value must be positive" }).optional(),
   nightDose: z.coerce.number().min(0, { message: "Value must be positive" }).optional(),
 }).refine(data => {
-  // At least one field must be filled
   return data.morningSugar !== undefined || 
          data.nightSugar !== undefined || 
          data.morningDose !== undefined || 
@@ -36,6 +43,7 @@ const Forms = () => {
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
+      date: new Date(),
       morningSugar: undefined,
       nightSugar: undefined,
       morningDose: undefined,
@@ -47,11 +55,8 @@ const Forms = () => {
     setIsLoading(true);
     
     try {
-      // This is where we would submit to Supabase in the real implementation
-      // For now, we'll just simulate a successful submission
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // Add user_id (this would come from auth context in the real implementation)
       const dataToSubmit = {
         ...values,
         user_id: "mock-user-id-123",
@@ -63,8 +68,13 @@ const Forms = () => {
       showSuccess("Reading submitted successfully");
       setIsSubmitted(true);
       
-      // Reset form
-      form.reset();
+      form.reset({
+        date: new Date(),
+        morningSugar: undefined,
+        nightSugar: undefined,
+        morningDose: undefined,
+        nightDose: undefined,
+      });
     } catch (error) {
       console.error("Error submitting form:", error);
     } finally {
@@ -106,6 +116,51 @@ const Forms = () => {
             <CardContent>
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                  <FormField
+                    control={form.control}
+                    name="date"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-col">
+                        <FormLabel>Date</FormLabel>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <FormControl>
+                              <Button
+                                variant={"outline"}
+                                className={cn(
+                                  "w-full pl-3 text-left font-normal",
+                                  !field.value && "text-muted-foreground"
+                                )}
+                              >
+                                {field.value ? (
+                                  format(field.value, "PPP")
+                                ) : (
+                                  <span>Pick a date</span>
+                                )}
+                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                              </Button>
+                            </FormControl>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0" align="start">
+                            <Calendar
+                              mode="single"
+                              selected={field.value}
+                              onSelect={field.onChange}
+                              disabled={(date) =>
+                                date > new Date() || date < new Date("1900-01-01")
+                              }
+                              initialFocus
+                            />
+                          </PopoverContent>
+                        </Popover>
+                        <FormDescription>
+                          Select the date for these readings
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <FormField
                       control={form.control}

@@ -8,7 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { PlusCircle, Trash2 } from "lucide-react";
+import { PlusCircle, Trash2, HelpCircle } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { showSuccess } from "@/utils/toast";
 
 // Profile form schema
@@ -77,8 +78,6 @@ const Profile = () => {
     setIsProfileLoading(true);
     
     try {
-      // This is where we would update the profile in Supabase
-      // For now, we'll just simulate a successful update
       await new Promise(resolve => setTimeout(resolve, 1000));
       
       console.log("Profile updated with data:", values);
@@ -94,8 +93,6 @@ const Profile = () => {
     setIsPasswordLoading(true);
     
     try {
-      // This is where we would update the password in Supabase
-      // For now, we'll just simulate a successful update
       await new Promise(resolve => setTimeout(resolve, 1000));
       
       console.log("Password updated");
@@ -182,8 +179,11 @@ const Profile = () => {
                           <FormItem>
                             <FormLabel>Email</FormLabel>
                             <FormControl>
-                              <Input placeholder="Your email" {...field} />
+                              <Input {...field} readOnly className="bg-gray-100 cursor-not-allowed" />
                             </FormControl>
+                            <FormDescription>
+                              Your email address cannot be changed
+                            </FormDescription>
                             <FormMessage />
                           </FormItem>
                         )}
@@ -192,7 +192,22 @@ const Profile = () => {
                     
                     <div className="space-y-4">
                       <div className="flex items-center justify-between">
-                        <h3 className="text-lg font-medium">Telegram Handles</h3>
+                        <div className="flex items-center">
+                          <h3 className="text-lg font-medium">Telegram Handles</h3>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <HelpCircle className="h-4 w-4 ml-2 text-muted-foreground" />
+                              </TooltipTrigger>
+                              <TooltipContent className="max-w-xs">
+                                <p>
+                                  To get your Telegram ID, message the @userinfobot on Telegram. 
+                                  The bot will reply with your ID which you can use here.
+                                </p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        </div>
                         <Button 
                           type="button" 
                           variant="outline" 
