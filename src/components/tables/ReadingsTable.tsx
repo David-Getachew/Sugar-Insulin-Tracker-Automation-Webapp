@@ -42,7 +42,7 @@ const ReadingsTable = () => {
   const [date, setDate] = useState<Date | undefined>(undefined);
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
+  const itemsPerPage = 7; // Changed to 7 items per page
   
   // Generate 100 days of mock data for pagination demo
   const allData = generateMockData(100);

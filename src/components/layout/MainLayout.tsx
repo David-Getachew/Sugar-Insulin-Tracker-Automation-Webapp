@@ -45,7 +45,16 @@ const MainLayout = ({ children }: MainLayoutProps) => {
       >
         <div className="flex items-center justify-between p-4 border-b border-gray-200">
           {sidebarOpen && (
-            <Link to="/dashboard" className="text-xl font-bold text-primary whitespace-nowrap">
+            <Link 
+              to="/dashboard" 
+              className="text-xl font-bold text-primary whitespace-nowrap"
+              onClick={(e) => {
+                if (!sidebarOpen) {
+                  e.preventDefault();
+                  navigate("/dashboard");
+                }
+              }}
+            >
               Sugar & Insulin Tracker
             </Link>
           )}
@@ -71,6 +80,12 @@ const MainLayout = ({ children }: MainLayoutProps) => {
                   : "text-gray-600 hover:bg-gray-100",
                 sidebarOpen ? "justify-start" : "justify-center"
               )}
+              onClick={(e) => {
+                if (!sidebarOpen) {
+                  e.preventDefault();
+                  navigate(item.path);
+                }
+              }}
             >
               <span className={cn(sidebarOpen ? "mr-3" : "mr-0")}>
                 {item.icon}
