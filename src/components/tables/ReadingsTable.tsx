@@ -7,7 +7,7 @@ import {
   TableHeader, 
   TableRow 
 } from "@/components/ui/table";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -132,102 +132,97 @@ const ReadingsTable = () => {
 
   return (
     <Card className="w-full bg-white border border-[#e2e8f0]">
-      <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between pb-2 gap-4">
-        <div>
-          <h3 className="text-lg font-medium text-[#0f766e]">Readings History</h3>
-          <p className="text-sm text-[#475569] mt-1">
-            View your historical readings. Use filters to narrow down by date or date range. Sort by date using the sort button.
-          </p>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          {showSortButton && (
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={toggleSortOrder}
-              className={cn(
-                "border-[#cbd5e1]",
-                sortOrder !== "desc" && "bg-[#0f766e] text-white"
-              )}
-            >
-              <ArrowUpDown className="h-4 w-4" />
-            </Button>
-          )}
-          
-          <Popover open={openDatePicker} onOpenChange={setOpenDatePicker}>
-            <PopoverTrigger asChild>
+      <CardContent className="pt-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 gap-4">
+          <div className="flex flex-wrap items-center gap-2">
+            {showSortButton && (
               <Button
-                variant={date ? "default" : "outline"}
+                variant="outline"
+                size="icon"
+                onClick={toggleSortOrder}
                 className={cn(
-                  "justify-start text-left font-normal",
-                  !date && "text-[#475569]",
-                  date && "bg-[#0f766e] text-white hover:bg-[#0d5c58]"
+                  "border-[#cbd5e1]",
+                  sortOrder !== "desc" && "bg-[#0f766e] text-white"
                 )}
               >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {date ? format(date, "PPP") : "Filter by date"}
+                <ArrowUpDown className="h-4 w-4" />
               </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="end">
-              <Calendar
-                mode="single"
-                selected={date}
-                onSelect={handleDateSelect}
-                initialFocus
-              />
-            </PopoverContent>
-          </Popover>
-          
-          <Popover open={openDateRangePicker} onOpenChange={setOpenDateRangePicker}>
-            <PopoverTrigger asChild>
-              <Button
-                variant={dateRange?.from ? "default" : "outline"}
-                className={cn(
-                  "justify-start text-left font-normal",
-                  !dateRange?.from && "text-[#475569]",
-                  dateRange?.from && "bg-[#0f766e] text-white hover:bg-[#0d5c58]"
-                )}
-              >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {dateRange?.from ? (
-                  dateRange.to ? (
-                    <>
-                      {format(dateRange.from, "LLL dd, y")} -{" "}
-                      {format(dateRange.to, "LLL dd, y")}
-                    </>
+            )}
+            
+            <Popover open={openDatePicker} onOpenChange={setOpenDatePicker}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant={date ? "default" : "outline"}
+                  className={cn(
+                    "justify-start text-left font-normal",
+                    !date && "text-[#475569]",
+                    date && "bg-[#0f766e] text-white hover:bg-[#0d5c58]"
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {date ? format(date, "PPP") : "Filter by date"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="end">
+                <Calendar
+                  mode="single"
+                  selected={date}
+                  onSelect={handleDateSelect}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
+            
+            <Popover open={openDateRangePicker} onOpenChange={setOpenDateRangePicker}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant={dateRange?.from ? "default" : "outline"}
+                  className={cn(
+                    "justify-start text-left font-normal",
+                    !dateRange?.from && "text-[#475569]",
+                    dateRange?.from && "bg-[#0f766e] text-white hover:bg-[#0d5c58]"
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {dateRange?.from ? (
+                    dateRange.to ? (
+                      <>
+                        {format(dateRange.from, "LLL dd, y")} -{" "}
+                        {format(dateRange.to, "LLL dd, y")}
+                      </>
+                    ) : (
+                      format(dateRange.from, "LLL dd, y")
+                    )
                   ) : (
-                    format(dateRange.from, "LLL dd, y")
-                  )
-                ) : (
-                  "Filter by range"
-                )}
+                    "Filter by range"
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="end">
+                <Calendar
+                  mode="range"
+                  selected={dateRange}
+                  onSelect={handleDateRangeSelect}
+                  initialFocus
+                  numberOfMonths={2}
+                />
+              </PopoverContent>
+            </Popover>
+            
+            {(date || dateRange?.from) && (
+              <Button 
+                variant="outline" 
+                onClick={clearFilters} 
+                size="sm"
+                className="flex items-center gap-1"
+              >
+                <X className="h-4 w-4" />
+                Clear
               </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="end">
-              <Calendar
-                mode="range"
-                selected={dateRange}
-                onSelect={handleDateRangeSelect}
-                initialFocus
-                numberOfMonths={2}
-              />
-            </PopoverContent>
-          </Popover>
-          
-          {(date || dateRange?.from) && (
-            <Button 
-              variant="outline" 
-              onClick={clearFilters} 
-              size="sm"
-              className="flex items-center gap-1"
-            >
-              <X className="h-4 w-4" />
-              Clear
-            </Button>
-          )}
+            )}
+          </div>
         </div>
-      </CardHeader>
-      <CardContent>
+        
         <div className="rounded-md border border-[#e2e8f0]">
           <Table>
             <TableHeader>
