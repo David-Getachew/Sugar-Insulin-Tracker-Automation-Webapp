@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Area, AreaChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from "recharts";
+import { Line, LineChart, ResponsiveContainer, XAxis, YAxis, Tooltip, Legend } from "recharts";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
@@ -56,7 +56,7 @@ const SugarLevelChart = () => {
       <CardContent className="pb-4">
         <div className="h-[250px]">
           <ResponsiveContainer width="100%" height="100%">
-            <AreaChart
+            <LineChart
               data={data}
               margin={{
                 top: 10,
@@ -87,25 +87,33 @@ const SugarLevelChart = () => {
                 labelStyle={{ color: '#0f172a', fontWeight: '500' }}
                 itemStyle={{ color: '#475569' }}
               />
-              <Area
+              <Legend 
+                wrapperStyle={{ paddingBottom: '10px' }}
+                formatter={(value) => (
+                  <span style={{ color: '#475569' }}>
+                    {value === 'morning' ? 'Morning' : 'Evening'}
+                  </span>
+                )}
+              />
+              <Line
                 type="monotone"
                 dataKey="morning"
-                stackId="1"
                 stroke="#14b8a6"
-                fill="#14b8a6"
-                fillOpacity={0.2}
+                strokeWidth={2}
+                dot={{ r: 4, fill: '#14b8a6' }}
+                activeDot={{ r: 6, fill: '#14b8a6' }}
                 name="Morning"
               />
-              <Area
+              <Line
                 type="monotone"
                 dataKey="evening"
-                stackId="2"
                 stroke="#0f766e"
-                fill="#0f766e"
-                fillOpacity={0.2}
+                strokeWidth={2}
+                dot={{ r: 4, fill: '#0f766e' }}
+                activeDot={{ r: 6, fill: '#0f766e' }}
                 name="Evening"
               />
-            </AreaChart>
+            </LineChart>
           </ResponsiveContainer>
         </div>
       </CardContent>

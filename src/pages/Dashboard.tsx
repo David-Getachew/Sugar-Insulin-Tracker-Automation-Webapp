@@ -1,50 +1,29 @@
-import { useState, useEffect } from "react";
 import MainLayout from "@/components/layout/MainLayout";
 import SugarLevelChart from "@/components/charts/SugarLevelChart";
-import InsulinDoseChart from "@/components/charts/InsulinDoseChart";
+import DoseChart from "@/components/charts/DoseChart";
 import ReadingsTable from "@/components/tables/ReadingsTable";
 
 const Dashboard = () => {
-  const [userData, setUserData] = useState({
-    name: "John Doe",
-    email: "john.doe@example.com",
-  });
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setUserData({
-        name: "John Doe",
-        email: "john.doe@example.com",
-      });
-    }, 500);
-
-    return () => clearTimeout(timer);
-  }, []);
-
   return (
     <MainLayout>
-      <div className="space-y-8">
+      <div className="space-y-6">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-[#0f172a]">Welcome, {userData.name}</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-[#0f172a]">Dashboard</h1>
           <p className="text-[#475569]">
-            Here's an overview of your sugar levels and insulin doses
+            Monitor your blood sugar levels, medication doses, and historical readings.
           </p>
         </div>
-
-        <div className="space-y-8">
-          <div>
-            <h2 className="text-xl font-semibold mb-4 text-[#0f766e]">Sugar Levels</h2>
-            <SugarLevelChart />
-          </div>
-
-          <div>
-            <h2 className="text-xl font-semibold mb-4 text-[#0f766e]">Insulin Doses</h2>
-            <InsulinDoseChart />
-          </div>
+        
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <SugarLevelChart />
+          <DoseChart />
         </div>
-
+        
         <div>
-          <h2 className="text-xl font-semibold mb-4 text-[#0f766e]">Readings History</h2>
+          <h2 className="text-xl font-semibold mb-2 text-[#0f766e]">Readings History</h2>
+          <p className="text-sm text-[#475569] mb-4">
+            View your historical readings. Use filters to narrow down by date or date range. Sort by date using the sort button.
+          </p>
           <ReadingsTable />
         </div>
       </div>
