@@ -21,14 +21,20 @@ const profileFormSchema = z.object({
       handle: z.string().min(1, { message: "Telegram handle is required" }),
       label: z.string().optional(),
     })
-  ),
+  ).min(0),
   secondaryContacts: z.array(
     z.object({
       name: z.string().min(2, { message: "Name must be at least 2 characters" }),
       email: z.string().email({ message: "Please enter a valid email address" }),
       relationship: z.string().optional(),
     })
-  ),
+  ).min(0),
+}).refine(data => {
+  // At least one of telegramHandles or secondaryContacts must have items
+  return data.telegramHandles.length > 0 || data.secondaryContacts.length > 0;
+}, {
+  message: "At least one Telegram handle or secondary contact is required",
+  path: ["telegramHandles"], // This will show the error on the telegramHandles field
 });
 
 // Password form schema
@@ -48,16 +54,12 @@ const Profile = () => {
   const [isProfileLoading, setIsProfileLoading] = useState(false);
   const [isPasswordLoading, setIsPasswordLoading] = useState(false);
 
-  // Mock user data - will be replaced with actual user data from Supabase
+  // Default values with empty arrays (no default values)
   const defaultValues: ProfileFormValues = {
     name: "John Doe",
     email: "john.doe@example.com",
-    telegramHandles: [
-      { handle: "@johndoe", label: "Personal" }
-    ],
-    secondaryContacts: [
-      { name: "Jane Doe", email: "jane.doe@example.com", relationship: "Doctor" }
-    ],
+    telegramHandles: [],
+    secondaryContacts: [],
   };
 
   const profileForm = useForm<ProfileFormValues>({
@@ -210,6 +212,94 @@ const Profile = () => {
                     
                     <div className="space-y-4">
                       <div className="flex items-center justify-between">
+                        <div className="flex items-center">
+                          <h3 className="text-lg font-medium text-[#0f172a]">Telegram Handles</h3>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <HelpCircle className="h-4 w-4 ml-2 text-[#475569]" />
+                              </TooltipTrigger>
+                              <TooltipContent className="max-w-xs bg-white border border-[#e2e8f0]">
+                                <p className="text-[#475569]">
+                                  To get your Telegram ID, message the @userinfobot on Telegram. 
+                                  The bot will reply with your ID which you can use here.
+                                </p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        </div>
+                        <Button 
+                          type="button" 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={addTelegramHandle}
+                          className="border-[#0f766e] text-[#0f766e] hover:bg-[#14b8a6] hover:text-white"
+                        >
+                          <PlusCircle className="h-4 w-4 mr-2" />
+                          Add Handle
+                        </Button>
+                      </div>
+                      
+                      {profileForm.watch("telegramHandles").length === 0 && (
+                        <div className="text-sm text-[#475569] italic">
+                          No Telegram handles added. Add at least one handle or a secondary contact.
+                        </div>
+                      )}
+                      
+                      {profileForm.watch("telegramHandles").map((_, index) => (
+                        <div key={index} className="flex items-end gap-4">
+                          <FormField
+                            control={profileForm.control}
+                            name={`telegramHandles.${index}.handle`}
+                            render={({ field }) => (
+                              <FormItem className="flex-1">
+                                <FormLabel className="text-[#475569]">Handle</FormLabel>
+                                <FormControl>
+                                  <Input 
+                                    placeholder="@username" 
+                                    {...field} 
+                                    className="border-[#cbd5e1] focus:ring-[#0f766e] focus:border-[#0f766e]"
+                                  />
+                                </FormControl>
+                                <FormMessage className="text-[#dc2626]" />
+                              </FormItem>
+                            )}
+                          />
+                          
+                          <FormField
+                            control={profileForm.control}
+                            name={`telegramHandles.${index}.label`}
+                            render={({ field }) => (
+                              <FormItem className="flex-1">
+                                <FormLabel className="text-[#475569]">Label (Optional)</FormLabel>
+                                <FormControl>
+                                  <Input 
+                                    placeholder="e.g. Personal, Work" 
+                                    {...field} 
+                                    className="border-[#cbd5e1] focus:ring-[#0f766e] focus:border-[#0f766e]"
+                                  />
+                                </FormControl>
+                                <FormMessage className="text-[#dc2626]" />
+                              </FormItem>
+                            )}
+                          />
+                          
+                          <Button 
+                            type="button" 
+                            variant="ghost" 
+                            size="icon" 
+                            onClick={() => removeTelegramHandle(index)}
+                            className="mb-2 hover:bg-[#14b8a6] hover:text-[#0f766e]"
+                            disabled={profileForm.watch("telegramHandles").length <= 1 && profileForm.watch("secondaryContacts").length === 0}
+                          >
+                            <Trash2 className="h-4 w-4 text-[#dc2626]" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                    
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
                         <h3 className="text-lg font-medium text-[#0f172a]">Secondary Contacts</h3>
                         <Button 
                           type="button" 
@@ -223,6 +313,12 @@ const Profile = () => {
                         </Button>
                       </div>
                       
+                      {profileForm.watch("secondaryContacts").length === 0 && (
+                        <div className="text-sm text-[#475569] italic">
+                          No secondary contacts added. Add at least one contact or a Telegram handle.
+                        </div>
+                      )}
+                      
                       {profileForm.watch("secondaryContacts").map((_, index) => (
                         <div key={index} className="space-y-4 p-4 border border-[#e2e8f0] rounded-md">
                           <div className="flex justify-between items-center">
@@ -233,7 +329,7 @@ const Profile = () => {
                               size="icon" 
                               onClick={() => removeSecondaryContact(index)}
                               className="hover:bg-[#14b8a6] hover:text-[#0f766e]"
-                              disabled={profileForm.watch("secondaryContacts").length <= 1}
+                              disabled={profileForm.watch("secondaryContacts").length <= 1 && profileForm.watch("telegramHandles").length === 0}
                             >
                               <Trash2 className="h-4 w-4 text-[#dc2626]" />
                             </Button>
@@ -297,88 +393,6 @@ const Profile = () => {
                               )}
                             />
                           </div>
-                        </div>
-                      ))}
-                    </div>
-                    
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center">
-                          <h3 className="text-lg font-medium text-[#0f172a]">Telegram Handles</h3>
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <HelpCircle className="h-4 w-4 ml-2 text-[#475569]" />
-                              </TooltipTrigger>
-                              <TooltipContent className="max-w-xs bg-white border border-[#e2e8f0]">
-                                <p className="text-[#475569]">
-                                  To get your Telegram ID, message the @userinfobot on Telegram. 
-                                  The bot will reply with your ID which you can use here.
-                                </p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                        </div>
-                        <Button 
-                          type="button" 
-                          variant="outline" 
-                          size="sm" 
-                          onClick={addTelegramHandle}
-                          className="border-[#0f766e] text-[#0f766e] hover:bg-[#14b8a6] hover:text-white"
-                        >
-                          <PlusCircle className="h-4 w-4 mr-2" />
-                          Add Handle
-                        </Button>
-                      </div>
-                      
-                      {profileForm.watch("telegramHandles").map((_, index) => (
-                        <div key={index} className="flex items-end gap-4">
-                          <FormField
-                            control={profileForm.control}
-                            name={`telegramHandles.${index}.handle`}
-                            render={({ field }) => (
-                              <FormItem className="flex-1">
-                                <FormLabel className="text-[#475569]">Handle</FormLabel>
-                                <FormControl>
-                                  <Input 
-                                    placeholder="@username" 
-                                    {...field} 
-                                    className="border-[#cbd5e1] focus:ring-[#0f766e] focus:border-[#0f766e]"
-                                  />
-                                </FormControl>
-                                <FormMessage className="text-[#dc2626]" />
-                              </FormItem>
-                            )}
-                          />
-                          
-                          <FormField
-                            control={profileForm.control}
-                            name={`telegramHandles.${index}.label`}
-                            render={({ field }) => (
-                              <FormItem className="flex-1">
-                                <FormLabel className="text-[#475569]">Label (Optional)</FormLabel>
-                                <FormControl>
-                                  <Input 
-                                    placeholder="e.g. Personal, Work" 
-                                    {...field} 
-                                    className="border-[#cbd5e1] focus:ring-[#0f766e] focus:border-[#0f766e]"
-                                  />
-                                </FormControl>
-                                <FormMessage className="text-[#dc2626]" />
-                              </FormItem>
-                            )}
-                          />
-                          
-                          <Button 
-                            type="button" 
-                            variant="ghost" 
-                            size="icon" 
-                            onClick={() => removeTelegramHandle(index)}
-                            className="mb-2 hover:bg-[#14b8a6] hover:text-[#0f766e]"
-                            disabled={profileForm.watch("telegramHandles").length <= 1}
-                          >
-                            <Trash2 className="h-4 w-4 text-[#dc2626]" />
-                          </Button>
                         </div>
                       ))}
                     </div>
