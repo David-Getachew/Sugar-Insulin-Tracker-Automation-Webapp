@@ -27,9 +27,9 @@ const InsulinDoseChart = () => {
   const data = generateMockData(parseInt(timeRange));
 
   return (
-    <Card className="w-full">
+    <Card className="w-full bg-white border border-[#e2e8f0]">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <CardTitle className="text-lg font-medium">Insulin Doses</CardTitle>
+        <CardTitle className="text-lg font-medium text-[#0f766e]">Insulin Doses</CardTitle>
         <Select
           value={timeRange}
           onValueChange={setTimeRange}
@@ -57,13 +57,16 @@ const InsulinDoseChart = () => {
                 bottom: 5,
               }}
             >
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="date" />
-              <YAxis domain={[0, 20]} />
-              <Tooltip />
+              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+              <XAxis dataKey="date" stroke="#475569" />
+              <YAxis domain={[0, 20]} stroke="#475569" />
+              <Tooltip 
+                contentStyle={{ backgroundColor: 'white', borderColor: '#e2e8f0' }}
+                itemStyle={{ color: '#0f172a' }}
+              />
               <Legend />
-              <Bar dataKey="morningDose" name="Morning Dose" fill="#1386c1" />
-              <Bar dataKey="nightDose" name="Night Dose" fill="#0d9488" />
+              <Bar dataKey="morningDose" name="Morning Dose" fill="#0f766e" />
+              <Bar dataKey="nightDose" name="Night Dose" fill="#f59e0b" />
             </BarChart>
           </ResponsiveContainer>
         </div>

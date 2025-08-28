@@ -51,11 +51,11 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-      <Card className="w-full max-w-md">
+    <div className="min-h-screen flex items-center justify-center bg-[#f9fafb] px-4">
+      <Card className="w-full max-w-md bg-white border border-[#e2e8f0]">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold text-center">Sugar & Insulin Tracker</CardTitle>
-          <CardDescription className="text-center">
+          <CardTitle className="text-2xl font-bold text-center text-[#0f766e]">Sugar & Insulin Tracker</CardTitle>
+          <CardDescription className="text-center text-[#475569]">
             Enter your credentials to access your account
           </CardDescription>
         </CardHeader>
@@ -67,11 +67,15 @@ const Login = () => {
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Email</FormLabel>
+                    <FormLabel className="text-[#475569]">Email</FormLabel>
                     <FormControl>
-                      <Input placeholder="your.email@example.com" {...field} />
+                      <Input 
+                        placeholder="your.email@example.com" 
+                        {...field} 
+                        className="border-[#cbd5e1] focus:ring-[#0f766e] focus:border-[#0f766e]"
+                      />
                     </FormControl>
-                    <FormMessage />
+                    <FormMessage className="text-[#dc2626]" />
                   </FormItem>
                 )}
               />
@@ -80,11 +84,16 @@ const Login = () => {
                 name="password"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Password</FormLabel>
+                    <FormLabel className="text-[#475569]">Password</FormLabel>
                     <FormControl>
-                      <Input type="password" placeholder="••••••••" {...field} />
+                      <Input 
+                        type="password" 
+                        placeholder="••••••••" 
+                        {...field} 
+                        className="border-[#cbd5e1] focus:ring-[#0f766e] focus:border-[#0f766e]"
+                      />
                     </FormControl>
-                    <FormMessage />
+                    <FormMessage className="text-[#dc2626]" />
                   </FormItem>
                 )}
               />
@@ -95,10 +104,10 @@ const Login = () => {
           </Form>
         </CardContent>
         <CardFooter className="flex flex-col space-y-2">
-          <p className="text-sm text-center text-gray-500">
+          <p className="text-sm text-center text-[#475569]">
             Contact your administrator if you need access to the system.
           </p>
-          <p className="text-xs text-center text-gray-400">
+          <p className="text-xs text-center text-[#475569]">
             For demo: use demo@example.com / password
           </p>
         </CardFooter>

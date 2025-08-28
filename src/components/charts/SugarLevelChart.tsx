@@ -27,9 +27,9 @@ const SugarLevelChart = () => {
   const data = generateMockData(parseInt(timeRange));
 
   return (
-    <Card className="w-full">
+    <Card className="w-full bg-white border border-[#e2e8f0]">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <CardTitle className="text-lg font-medium">Sugar Levels</CardTitle>
+        <CardTitle className="text-lg font-medium text-[#0f766e]">Sugar Levels</CardTitle>
         <Select
           value={timeRange}
           onValueChange={setTimeRange}
@@ -57,24 +57,29 @@ const SugarLevelChart = () => {
                 bottom: 5,
               }}
             >
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="date" />
-              <YAxis domain={[60, 200]} />
-              <Tooltip />
+              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+              <XAxis dataKey="date" stroke="#475569" />
+              <YAxis domain={[60, 200]} stroke="#475569" />
+              <Tooltip 
+                contentStyle={{ backgroundColor: 'white', borderColor: '#e2e8f0' }}
+                itemStyle={{ color: '#0f172a' }}
+              />
               <Legend />
               <Line
                 type="monotone"
                 dataKey="morningSugar"
                 name="Morning Sugar"
-                stroke="#1386c1"
+                stroke="#0f766e"
                 activeDot={{ r: 8 }}
+                strokeWidth={2}
               />
               <Line
                 type="monotone"
                 dataKey="nightSugar"
                 name="Night Sugar"
-                stroke="#0d9488"
+                stroke="#f59e0b"
                 activeDot={{ r: 8 }}
+                strokeWidth={2}
               />
             </LineChart>
           </ResponsiveContainer>

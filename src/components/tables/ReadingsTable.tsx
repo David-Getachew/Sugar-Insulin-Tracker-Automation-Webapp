@@ -84,9 +84,9 @@ const ReadingsTable = () => {
   };
 
   return (
-    <Card className="w-full">
+    <Card className="w-full bg-white border border-[#e2e8f0]">
       <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between pb-2 gap-4">
-        <CardTitle className="text-lg font-medium">Readings History</CardTitle>
+        <CardTitle className="text-lg font-medium text-[#0f766e]">Readings History</CardTitle>
         <div className="flex flex-wrap items-center gap-2">
           <Popover>
             <PopoverTrigger asChild>
@@ -94,7 +94,7 @@ const ReadingsTable = () => {
                 variant="outline"
                 className={cn(
                   "justify-start text-left font-normal",
-                  !date && "text-muted-foreground"
+                  !date && "text-[#475569]"
                 )}
               >
                 <CalendarIcon className="mr-2 h-4 w-4" />
@@ -117,7 +117,7 @@ const ReadingsTable = () => {
                 variant="outline"
                 className={cn(
                   "justify-start text-left font-normal",
-                  !dateRange?.from && "text-muted-foreground"
+                  !dateRange?.from && "text-[#475569]"
                 )}
               >
                 <CalendarIcon className="mr-2 h-4 w-4" />
@@ -154,45 +154,63 @@ const ReadingsTable = () => {
         </div>
       </CardHeader>
       <CardContent>
-        <div className="rounded-md border">
+        <div className="rounded-md border border-[#e2e8f0]">
           <Table>
             <TableHeader>
-              <TableRow>
-                <TableHead className="w-[120px]">Date</TableHead>
-                <TableHead>Morning Sugar</TableHead>
-                <TableHead>Night Sugar</TableHead>
-                <TableHead>Morning Dose</TableHead>
-                <TableHead>Night Dose</TableHead>
+              <TableRow className="bg-[#f9fafb]">
+                <TableHead className="w-[120px] text-[#0f766e]">Date</TableHead>
+                <TableHead className="text-[#0f766e]">Morning Sugar</TableHead>
+                <TableHead className="text-[#0f766e]">Night Sugar</TableHead>
+                <TableHead className="text-[#0f766e]">Morning Dose</TableHead>
+                <TableHead className="text-[#0f766e]">Night Dose</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {paginatedData.length > 0 ? (
                 paginatedData.map((reading) => (
-                  <TableRow key={reading.id}>
-                    <TableCell className="font-medium">{format(reading.date, "MMM d, yyyy")}</TableCell>
+                  <TableRow key={reading.id} className="hover:bg-[#f0fdfa]">
+                    <TableCell className="font-medium text-[#0f172a]">{format(reading.date, "MMM d, yyyy")}</TableCell>
                     <TableCell>
                       <div className="flex items-center">
-                        {reading.morningSugar}
+                        <span className={cn(
+                          "data-number font-medium",
+                          isAbnormalSugar(reading.morningSugar) ? "text-[#dc2626]" : "text-[#0f172a]"
+                        )}>
+                          {reading.morningSugar}
+                        </span>
                         {isAbnormalSugar(reading.morningSugar) && (
-                          <AlertTriangle className="h-4 w-4 text-yellow-500 ml-2" />
+                          <AlertTriangle className="h-4 w-4 text-[#dc2626] ml-2" />
                         )}
                       </div>
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center">
-                        {reading.nightSugar}
+                        <span className={cn(
+                          "data-number font-medium",
+                          isAbnormalSugar(reading.nightSugar) ? "text-[#dc2626]" : "text-[#0f172a]"
+                        )}>
+                          {reading.nightSugar}
+                        </span>
                         {isAbnormalSugar(reading.nightSugar) && (
-                          <AlertTriangle className="h-4 w-4 text-yellow-500 ml-2" />
+                          <AlertTriangle className="h-4 w-4 text-[#dc2626] ml-2" />
                         )}
                       </div>
                     </TableCell>
-                    <TableCell>{reading.morningDose}</TableCell>
-                    <TableCell>{reading.nightDose}</TableCell>
+                    <TableCell>
+                      <span className="data-number text-[#0f172a] font-medium">
+                        {reading.morningDose}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      <span className="data-number text-[#0f172a] font-medium">
+                        {reading.nightDose}
+                      </span>
+                    </TableCell>
                   </TableRow>
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={5} className="h-24 text-center">
+                  <TableCell colSpan={5} className="h-24 text-center text-[#475569]">
                     No readings found for the selected filters.
                   </TableCell>
                 </TableRow>
@@ -204,7 +222,7 @@ const ReadingsTable = () => {
         {/* Pagination */}
         {totalPages > 1 && (
           <div className="flex items-center justify-between mt-4">
-            <div className="text-sm text-muted-foreground">
+            <div className="text-sm text-[#475569]">
               Showing {startIndex + 1}-{Math.min(startIndex + itemsPerPage, filteredData.length)} of {filteredData.length} results
             </div>
             <div className="flex items-center space-x-2">
@@ -216,7 +234,7 @@ const ReadingsTable = () => {
               >
                 Previous
               </Button>
-              <div className="text-sm font-medium">
+              <div className="text-sm font-medium text-[#0f172a]">
                 Page {currentPage} of {totalPages}
               </div>
               <Button

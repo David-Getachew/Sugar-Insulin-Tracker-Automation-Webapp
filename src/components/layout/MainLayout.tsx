@@ -28,9 +28,9 @@ const MainLayout = ({ children }: MainLayoutProps) => {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className="min-h-screen bg-[#f9fafb] flex">
       {/* Sidebar */}
-      <div className="bg-[#115e59] flex flex-col w-20 sticky top-0 h-screen">
+      <div className="bg-[#0f766e] flex flex-col w-20 sticky top-0 h-screen">
         <nav className="flex-1 py-4">
           {navItems.map((item) => (
             <Link
@@ -39,8 +39,8 @@ const MainLayout = ({ children }: MainLayoutProps) => {
               className={`
                 flex items-center justify-center px-2 py-4 text-sm font-medium transition-colors
                 ${location.pathname === item.path
-                  ? "bg-[#0d9488] text-white"
-                  : "text-gray-200 hover:bg-[#0f766e]"
+                  ? "bg-[#f59e0b] text-white"
+                  : "text-white hover:bg-[#0d5c58]"
                 }
               `}
             >
@@ -52,10 +52,10 @@ const MainLayout = ({ children }: MainLayoutProps) => {
           ))}
         </nav>
         
-        <div className="p-2 border-t border-gray-700">
+        <div className="p-2 border-t border-[#0d5c58]">
           <Button 
             variant="ghost" 
-            className="w-full flex items-center justify-center p-2 hover:bg-[#0f766e] text-gray-200 hover:text-white"
+            className="w-full flex items-center justify-center p-2 hover:bg-[#0d5c58] text-white"
             onClick={handleLogout}
           >
             <div className="flex flex-col items-center">
@@ -73,7 +73,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
         </main>
 
         <footer className="bg-white border-t border-gray-200 py-4">
-          <div className="container mx-auto px-4 text-center text-sm text-gray-500">
+          <div className="container mx-auto px-4 text-center text-sm text-[#475569]">
             &copy; {new Date().getFullYear()} Sugar & Insulin Tracker
           </div>
         </footer>

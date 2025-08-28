@@ -138,19 +138,29 @@ const Profile = () => {
   return (
     <MainLayout>
       <div className="max-w-3xl mx-auto">
-        <h1 className="text-2xl font-bold tracking-tight mb-6">Profile Settings</h1>
+        <h1 className="text-2xl font-bold tracking-tight mb-6 text-[#0f172a]">Profile Settings</h1>
         
         <Tabs defaultValue="profile" className="space-y-6">
-          <TabsList>
-            <TabsTrigger value="profile">Profile</TabsTrigger>
-            <TabsTrigger value="password">Password</TabsTrigger>
+          <TabsList className="bg-[#f9fafb]">
+            <TabsTrigger 
+              value="profile" 
+              className="data-[state=active]:bg-[#0f766e] data-[state=active]:text-white"
+            >
+              Profile
+            </TabsTrigger>
+            <TabsTrigger 
+              value="password" 
+              className="data-[state=active]:bg-[#0f766e] data-[state=active]:text-white"
+            >
+              Password
+            </TabsTrigger>
           </TabsList>
           
           <TabsContent value="profile">
-            <Card>
+            <Card className="bg-white border border-[#e2e8f0]">
               <CardHeader>
-                <CardTitle>Profile Information</CardTitle>
-                <CardDescription>
+                <CardTitle className="text-[#0f766e]">Profile Information</CardTitle>
+                <CardDescription className="text-[#475569]">
                   Update your personal information and contact details.
                 </CardDescription>
               </CardHeader>
@@ -163,11 +173,15 @@ const Profile = () => {
                         name="name"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Name</FormLabel>
+                            <FormLabel className="text-[#475569]">Name</FormLabel>
                             <FormControl>
-                              <Input placeholder="Your name" {...field} />
+                              <Input 
+                                placeholder="Your name" 
+                                {...field} 
+                                className="border-[#cbd5e1] focus:ring-[#0f766e] focus:border-[#0f766e]"
+                              />
                             </FormControl>
-                            <FormMessage />
+                            <FormMessage className="text-[#dc2626]" />
                           </FormItem>
                         )}
                       />
@@ -177,14 +191,18 @@ const Profile = () => {
                         name="email"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Email</FormLabel>
+                            <FormLabel className="text-[#475569]">Email</FormLabel>
                             <FormControl>
-                              <Input {...field} readOnly className="bg-gray-100 cursor-not-allowed" />
+                              <Input 
+                                {...field} 
+                                readOnly 
+                                className="bg-[#f9fafb] cursor-not-allowed border-[#cbd5e1]"
+                              />
                             </FormControl>
-                            <FormDescription>
+                            <FormDescription className="text-[#475569]">
                               Your email address cannot be changed
                             </FormDescription>
-                            <FormMessage />
+                            <FormMessage className="text-[#dc2626]" />
                           </FormItem>
                         )}
                       />
@@ -193,14 +211,14 @@ const Profile = () => {
                     <div className="space-y-4">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center">
-                          <h3 className="text-lg font-medium">Telegram Handles</h3>
+                          <h3 className="text-lg font-medium text-[#0f172a]">Telegram Handles</h3>
                           <TooltipProvider>
                             <Tooltip>
                               <TooltipTrigger asChild>
-                                <HelpCircle className="h-4 w-4 ml-2 text-muted-foreground" />
+                                <HelpCircle className="h-4 w-4 ml-2 text-[#475569]" />
                               </TooltipTrigger>
-                              <TooltipContent className="max-w-xs">
-                                <p>
+                              <TooltipContent className="max-w-xs bg-white border border-[#e2e8f0]">
+                                <p className="text-[#475569]">
                                   To get your Telegram ID, message the @userinfobot on Telegram. 
                                   The bot will reply with your ID which you can use here.
                                 </p>
@@ -213,6 +231,7 @@ const Profile = () => {
                           variant="outline" 
                           size="sm" 
                           onClick={addTelegramHandle}
+                          className="border-[#0f766e] text-[#0f766e] hover:bg-[#14b8a6] hover:text-white"
                         >
                           <PlusCircle className="h-4 w-4 mr-2" />
                           Add Handle
@@ -226,11 +245,15 @@ const Profile = () => {
                             name={`telegramHandles.${index}.handle`}
                             render={({ field }) => (
                               <FormItem className="flex-1">
-                                <FormLabel>Handle</FormLabel>
+                                <FormLabel className="text-[#475569]">Handle</FormLabel>
                                 <FormControl>
-                                  <Input placeholder="@username" {...field} />
+                                  <Input 
+                                    placeholder="@username" 
+                                    {...field} 
+                                    className="border-[#cbd5e1] focus:ring-[#0f766e] focus:border-[#0f766e]"
+                                  />
                                 </FormControl>
-                                <FormMessage />
+                                <FormMessage className="text-[#dc2626]" />
                               </FormItem>
                             )}
                           />
@@ -240,11 +263,15 @@ const Profile = () => {
                             name={`telegramHandles.${index}.label`}
                             render={({ field }) => (
                               <FormItem className="flex-1">
-                                <FormLabel>Label (Optional)</FormLabel>
+                                <FormLabel className="text-[#475569]">Label (Optional)</FormLabel>
                                 <FormControl>
-                                  <Input placeholder="e.g. Personal, Work" {...field} />
+                                  <Input 
+                                    placeholder="e.g. Personal, Work" 
+                                    {...field} 
+                                    className="border-[#cbd5e1] focus:ring-[#0f766e] focus:border-[#0f766e]"
+                                  />
                                 </FormControl>
-                                <FormMessage />
+                                <FormMessage className="text-[#dc2626]" />
                               </FormItem>
                             )}
                           />
@@ -254,10 +281,10 @@ const Profile = () => {
                             variant="ghost" 
                             size="icon" 
                             onClick={() => removeTelegramHandle(index)}
-                            className="mb-2"
+                            className="mb-2 hover:bg-[#14b8a6] hover:text-[#0f766e]"
                             disabled={profileForm.watch("telegramHandles").length <= 1}
                           >
-                            <Trash2 className="h-4 w-4 text-destructive" />
+                            <Trash2 className="h-4 w-4 text-[#dc2626]" />
                           </Button>
                         </div>
                       ))}
@@ -265,12 +292,13 @@ const Profile = () => {
                     
                     <div className="space-y-4">
                       <div className="flex items-center justify-between">
-                        <h3 className="text-lg font-medium">Secondary Contacts</h3>
+                        <h3 className="text-lg font-medium text-[#0f172a]">Secondary Contacts</h3>
                         <Button 
                           type="button" 
                           variant="outline" 
                           size="sm" 
                           onClick={addSecondaryContact}
+                          className="border-[#0f766e] text-[#0f766e] hover:bg-[#14b8a6] hover:text-white"
                         >
                           <PlusCircle className="h-4 w-4 mr-2" />
                           Add Contact
@@ -278,17 +306,18 @@ const Profile = () => {
                       </div>
                       
                       {profileForm.watch("secondaryContacts").map((_, index) => (
-                        <div key={index} className="space-y-4 p-4 border rounded-md">
+                        <div key={index} className="space-y-4 p-4 border border-[#e2e8f0] rounded-md">
                           <div className="flex justify-between items-center">
-                            <h4 className="font-medium">Contact #{index + 1}</h4>
+                            <h4 className="font-medium text-[#0f172a]">Contact #{index + 1}</h4>
                             <Button 
                               type="button" 
                               variant="ghost" 
                               size="icon" 
                               onClick={() => removeSecondaryContact(index)}
+                              className="hover:bg-[#14b8a6] hover:text-[#0f766e]"
                               disabled={profileForm.watch("secondaryContacts").length <= 1}
                             >
-                              <Trash2 className="h-4 w-4 text-destructive" />
+                              <Trash2 className="h-4 w-4 text-[#dc2626]" />
                             </Button>
                           </div>
                           
@@ -298,11 +327,15 @@ const Profile = () => {
                               name={`secondaryContacts.${index}.name`}
                               render={({ field }) => (
                                 <FormItem>
-                                  <FormLabel>Name</FormLabel>
+                                  <FormLabel className="text-[#475569]">Name</FormLabel>
                                   <FormControl>
-                                    <Input placeholder="Contact name" {...field} />
+                                    <Input 
+                                      placeholder="Contact name" 
+                                      {...field} 
+                                      className="border-[#cbd5e1] focus:ring-[#0f766e] focus:border-[#0f766e]"
+                                    />
                                   </FormControl>
-                                  <FormMessage />
+                                  <FormMessage className="text-[#dc2626]" />
                                 </FormItem>
                               )}
                             />
@@ -312,11 +345,15 @@ const Profile = () => {
                               name={`secondaryContacts.${index}.email`}
                               render={({ field }) => (
                                 <FormItem>
-                                  <FormLabel>Email</FormLabel>
+                                  <FormLabel className="text-[#475569]">Email</FormLabel>
                                   <FormControl>
-                                    <Input placeholder="Contact email" {...field} />
+                                    <Input 
+                                      placeholder="Contact email" 
+                                      {...field} 
+                                      className="border-[#cbd5e1] focus:ring-[#0f766e] focus:border-[#0f766e]"
+                                    />
                                   </FormControl>
-                                  <FormMessage />
+                                  <FormMessage className="text-[#dc2626]" />
                                 </FormItem>
                               )}
                             />
@@ -326,14 +363,18 @@ const Profile = () => {
                               name={`secondaryContacts.${index}.relationship`}
                               render={({ field }) => (
                                 <FormItem className="md:col-span-2">
-                                  <FormLabel>Relationship (Optional)</FormLabel>
+                                  <FormLabel className="text-[#475569]">Relationship (Optional)</FormLabel>
                                   <FormControl>
-                                    <Input placeholder="e.g. Doctor, Family member" {...field} />
+                                    <Input 
+                                      placeholder="e.g. Doctor, Family member" 
+                                      {...field} 
+                                      className="border-[#cbd5e1] focus:ring-[#0f766e] focus:border-[#0f766e]"
+                                    />
                                   </FormControl>
-                                  <FormDescription>
+                                  <FormDescription className="text-[#475569]">
                                     Specify the relationship with this contact
                                   </FormDescription>
-                                  <FormMessage />
+                                  <FormMessage className="text-[#dc2626]" />
                                 </FormItem>
                               )}
                             />
@@ -352,10 +393,10 @@ const Profile = () => {
           </TabsContent>
           
           <TabsContent value="password">
-            <Card>
+            <Card className="bg-white border border-[#e2e8f0]">
               <CardHeader>
-                <CardTitle>Change Password</CardTitle>
-                <CardDescription>
+                <CardTitle className="text-[#0f766e]">Change Password</CardTitle>
+                <CardDescription className="text-[#475569]">
                   Update your password to keep your account secure.
                 </CardDescription>
               </CardHeader>
@@ -367,11 +408,16 @@ const Profile = () => {
                       name="currentPassword"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Current Password</FormLabel>
+                          <FormLabel className="text-[#475569]">Current Password</FormLabel>
                           <FormControl>
-                            <Input type="password" placeholder="••••••••" {...field} />
+                            <Input 
+                              type="password" 
+                              placeholder="••••••••" 
+                              {...field} 
+                              className="border-[#cbd5e1] focus:ring-[#0f766e] focus:border-[#0f766e]"
+                            />
                           </FormControl>
-                          <FormMessage />
+                          <FormMessage className="text-[#dc2626]" />
                         </FormItem>
                       )}
                     />
@@ -381,14 +427,19 @@ const Profile = () => {
                       name="newPassword"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>New Password</FormLabel>
+                          <FormLabel className="text-[#475569]">New Password</FormLabel>
                           <FormControl>
-                            <Input type="password" placeholder="••••••••" {...field} />
+                            <Input 
+                              type="password" 
+                              placeholder="••••••••" 
+                              {...field} 
+                              className="border-[#cbd5e1] focus:ring-[#0f766e] focus:border-[#0f766e]"
+                            />
                           </FormControl>
-                          <FormDescription>
+                          <FormDescription className="text-[#475569]">
                             Password must be at least 6 characters long
                           </FormDescription>
-                          <FormMessage />
+                          <FormMessage className="text-[#dc2626]" />
                         </FormItem>
                       )}
                     />
@@ -398,11 +449,16 @@ const Profile = () => {
                       name="confirmPassword"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Confirm New Password</FormLabel>
+                          <FormLabel className="text-[#475569]">Confirm New Password</FormLabel>
                           <FormControl>
-                            <Input type="password" placeholder="••••••••" {...field} />
+                            <Input 
+                              type="password" 
+                              placeholder="••••••••" 
+                              {...field} 
+                              className="border-[#cbd5e1] focus:ring-[#0f766e] focus:border-[#0f766e]"
+                            />
                           </FormControl>
-                          <FormMessage />
+                          <FormMessage className="text-[#dc2626]" />
                         </FormItem>
                       )}
                     />

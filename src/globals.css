@@ -2,6 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700&family=Roboto:wght@400;500&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -13,24 +15,24 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
 
-    --primary: 217.2 91.2% 59.8%;
-    --primary-foreground: 0 0% 98%;
+    --primary: 172 41% 32%; /* #0f766e */
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 172 74% 41%; /* #14b8a6 */
+    --secondary-foreground: 0 0% 100%;
 
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
 
-    --accent: 217.2 91.2% 59.8%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 37 98% 50%; /* #f59e0b */
+    --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 84.2% 60.2%;
+    --destructive: 0 84.2% 60.2%; /* #dc2626 */
     --destructive-foreground: 210 40% 98%;
 
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --ring: 172 41% 32%; /* #0f766e */
 
     --radius: 0.5rem;
   }
@@ -45,17 +47,17 @@
     --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 217.2 91.2% 59.8%;
-    --primary-foreground: 0 0% 98%;
+    --primary: 172 41% 32%; /* #0f766e */
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 172 74% 41%; /* #14b8a6 */
+    --secondary-foreground: 0 0% 100%;
 
     --muted: 217.2 32.6% 17.5%;
     --muted-foreground: 215 20.2% 65.1%;
 
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 37 98% 50%; /* #f59e0b */
+    --accent-foreground: 0 0% 100%;
 
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
@@ -73,30 +75,76 @@
 
   body {
     @apply bg-background text-foreground;
+    font-family: 'Inter', sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Poppins', sans-serif;
+  }
+
+  .data-number {
+    font-family: 'JetBrains Mono', monospace;
   }
 }
 
 /* Custom styles for the new theme */
-.bg-sidebar {
-  background-color: #115e59;
-}
-
-.bg-sidebar-hover {
+.bg-primary {
   background-color: #0f766e;
 }
 
-.bg-sidebar-active {
-  background-color: #0d9488;
+.bg-primary-light {
+  background-color: #14b8a6;
 }
 
-.text-accent {
-  color: #1386c1;
+.bg-primary-dark {
+  background-color: #0d5c58;
 }
 
 .bg-accent {
-  background-color: #1386c1;
+  background-color: #f59e0b;
 }
 
-.hover\:bg-accent:hover {
-  background-color: #1386c1;
+.bg-background-light {
+  background-color: #f9fafb;
+}
+
+.text-primary {
+  color: #0f766e;
+}
+
+.text-primary-light {
+  color: #14b8a6;
+}
+
+.text-primary-dark {
+  color: #0d5c58;
+}
+
+.text-accent {
+  color: #f59e0b;
+}
+
+.text-background-light {
+  color: #f9fafb;
+}
+
+.text-primary-text {
+  color: #0f172a;
+}
+
+.text-secondary-text {
+  color: #475569;
+}
+
+.border-light {
+  border-color: #e2e8f0;
+}
+
+.border-input {
+  border-color: #cbd5e1;
+}
+
+.focus-primary:focus {
+  outline: 2px solid #0f766e;
+  outline-offset: 2px;
 }

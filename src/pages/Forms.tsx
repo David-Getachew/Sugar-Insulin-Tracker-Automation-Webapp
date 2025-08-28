@@ -89,13 +89,13 @@ const Forms = () => {
   return (
     <MainLayout>
       <div className="max-w-2xl mx-auto">
-        <h1 className="text-2xl font-bold tracking-tight mb-6">Submit New Readings</h1>
+        <h1 className="text-2xl font-bold tracking-tight mb-6 text-[#0f172a]">Submit New Readings</h1>
         
         {isSubmitted ? (
-          <Card>
+          <Card className="bg-white border border-[#e2e8f0]">
             <CardHeader>
-              <CardTitle>Reading Submitted</CardTitle>
-              <CardDescription>
+              <CardTitle className="text-[#0f766e]">Reading Submitted</CardTitle>
+              <CardDescription className="text-[#475569]">
                 Your reading has been successfully recorded.
               </CardDescription>
             </CardHeader>
@@ -106,10 +106,10 @@ const Forms = () => {
             </CardFooter>
           </Card>
         ) : (
-          <Card>
+          <Card className="bg-white border border-[#e2e8f0]">
             <CardHeader>
-              <CardTitle>New Reading</CardTitle>
-              <CardDescription>
+              <CardTitle className="text-[#0f766e]">New Reading</CardTitle>
+              <CardDescription className="text-[#475569]">
                 Enter your sugar levels and insulin doses for today.
               </CardDescription>
             </CardHeader>
@@ -121,15 +121,15 @@ const Forms = () => {
                     name="date"
                     render={({ field }) => (
                       <FormItem className="flex flex-col">
-                        <FormLabel>Date</FormLabel>
+                        <FormLabel className="text-[#475569]">Date</FormLabel>
                         <Popover>
                           <PopoverTrigger asChild>
                             <FormControl>
                               <Button
                                 variant={"outline"}
                                 className={cn(
-                                  "w-full pl-3 text-left font-normal",
-                                  !field.value && "text-muted-foreground"
+                                  "w-full pl-3 text-left font-normal border-[#cbd5e1] text-[#0f172a]",
+                                  !field.value && "text-[#475569]"
                                 )}
                               >
                                 {field.value ? (
@@ -153,10 +153,10 @@ const Forms = () => {
                             />
                           </PopoverContent>
                         </Popover>
-                        <FormDescription>
+                        <FormDescription className="text-[#475569]">
                           Select the date for these readings
                         </FormDescription>
-                        <FormMessage />
+                        <FormMessage className="text-[#dc2626]" />
                       </FormItem>
                     )}
                   />
@@ -167,19 +167,20 @@ const Forms = () => {
                       name="morningSugar"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Morning Sugar Level</FormLabel>
+                          <FormLabel className="text-[#475569]">Morning Sugar Level</FormLabel>
                           <FormControl>
                             <Input 
                               type="number" 
                               placeholder="Enter value" 
                               {...field} 
                               value={field.value || ""}
+                              className="border-[#cbd5e1] focus:ring-[#0f766e] focus:border-[#0f766e]"
                             />
                           </FormControl>
-                          <FormDescription>
+                          <FormDescription className="text-[#475569]">
                             Your morning blood sugar reading
                           </FormDescription>
-                          <FormMessage />
+                          <FormMessage className="text-[#dc2626]" />
                         </FormItem>
                       )}
                     />
@@ -189,19 +190,20 @@ const Forms = () => {
                       name="nightSugar"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Night Sugar Level</FormLabel>
+                          <FormLabel className="text-[#475569]">Night Sugar Level</FormLabel>
                           <FormControl>
                             <Input 
                               type="number" 
                               placeholder="Enter value" 
                               {...field} 
                               value={field.value || ""}
+                              className="border-[#cbd5e1] focus:ring-[#0f766e] focus:border-[#0f766e]"
                             />
                           </FormControl>
-                          <FormDescription>
+                          <FormDescription className="text-[#475569]">
                             Your evening blood sugar reading
                           </FormDescription>
-                          <FormMessage />
+                          <FormMessage className="text-[#dc2626]" />
                         </FormItem>
                       )}
                     />
@@ -211,19 +213,20 @@ const Forms = () => {
                       name="morningDose"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Morning Insulin Dose</FormLabel>
+                          <FormLabel className="text-[#475569]">Morning Insulin Dose</FormLabel>
                           <FormControl>
                             <Input 
                               type="number" 
                               placeholder="Enter value" 
                               {...field} 
                               value={field.value || ""}
+                              className="border-[#cbd5e1] focus:ring-[#0f766e] focus:border-[#0f766e]"
                             />
                           </FormControl>
-                          <FormDescription>
+                          <FormDescription className="text-[#475569]">
                             Your morning insulin dose
                           </FormDescription>
-                          <FormMessage />
+                          <FormMessage className="text-[#dc2626]" />
                         </FormItem>
                       )}
                     />
@@ -233,19 +236,20 @@ const Forms = () => {
                       name="nightDose"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Night Insulin Dose</FormLabel>
+                          <FormLabel className="text-[#475569]">Night Insulin Dose</FormLabel>
                           <FormControl>
                             <Input 
                               type="number" 
                               placeholder="Enter value" 
                               {...field} 
                               value={field.value || ""}
+                              className="border-[#cbd5e1] focus:ring-[#0f766e] focus:border-[#0f766e]"
                             />
                           </FormControl>
-                          <FormDescription>
+                          <FormDescription className="text-[#475569]">
                             Your evening insulin dose
                           </FormDescription>
-                          <FormMessage />
+                          <FormMessage className="text-[#dc2626]" />
                         </FormItem>
                       )}
                     />
