@@ -210,6 +210,99 @@ const Profile = () => {
                     
                     <div className="space-y-4">
                       <div className="flex items-center justify-between">
+                        <h3 className="text-lg font-medium text-[#0f172a]">Secondary Contacts</h3>
+                        <Button 
+                          type="button" 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={addSecondaryContact}
+                          className="border-[#0f766e] text-[#0f766e] hover:bg-[#14b8a6] hover:text-white"
+                        >
+                          <PlusCircle className="h-4 w-4 mr-2" />
+                          Add Contact
+                        </Button>
+                      </div>
+                      
+                      {profileForm.watch("secondaryContacts").map((_, index) => (
+                        <div key={index} className="space-y-4 p-4 border border-[#e2e8f0] rounded-md">
+                          <div className="flex justify-between items-center">
+                            <div></div>
+                            <Button 
+                              type="button" 
+                              variant="ghost" 
+                              size="icon" 
+                              onClick={() => removeSecondaryContact(index)}
+                              className="hover:bg-[#14b8a6] hover:text-[#0f766e]"
+                              disabled={profileForm.watch("secondaryContacts").length <= 1}
+                            >
+                              <Trash2 className="h-4 w-4 text-[#dc2626]" />
+                            </Button>
+                          </div>
+                          
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <FormField
+                              control={profileForm.control}
+                              name={`secondaryContacts.${index}.name`}
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel className="text-[#475569]">Name</FormLabel>
+                                  <FormControl>
+                                    <Input 
+                                      placeholder="Contact name" 
+                                      {...field} 
+                                      className="border-[#cbd5e1] focus:ring-[#0f766e] focus:border-[#0f766e]"
+                                    />
+                                  </FormControl>
+                                  <FormMessage className="text-[#dc2626]" />
+                                </FormItem>
+                              )}
+                            />
+                            
+                            <FormField
+                              control={profileForm.control}
+                              name={`secondaryContacts.${index}.email`}
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel className="text-[#475569]">Email</FormLabel>
+                                  <FormControl>
+                                    <Input 
+                                      placeholder="Contact email" 
+                                      {...field} 
+                                      className="border-[#cbd5e1] focus:ring-[#0f766e] focus:border-[#0f766e]"
+                                    />
+                                  </FormControl>
+                                  <FormMessage className="text-[#dc2626]" />
+                                </FormItem>
+                              )}
+                            />
+                            
+                            <FormField
+                              control={profileForm.control}
+                              name={`secondaryContacts.${index}.relationship`}
+                              render={({ field }) => (
+                                <FormItem className="md:col-span-2">
+                                  <FormLabel className="text-[#475569]">Relationship (Optional)</FormLabel>
+                                  <FormControl>
+                                    <Input 
+                                      placeholder="e.g. Doctor, Family member" 
+                                      {...field} 
+                                      className="border-[#cbd5e1] focus:ring-[#0f766e] focus:border-[#0f766e]"
+                                    />
+                                  </FormControl>
+                                  <FormDescription className="text-[#475569]">
+                                    Specify the relationship with this contact
+                                  </FormDescription>
+                                  <FormMessage className="text-[#dc2626]" />
+                                </FormItem>
+                              )}
+                            />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
                         <div className="flex items-center">
                           <h3 className="text-lg font-medium text-[#0f172a]">Telegram Handles</h3>
                           <TooltipProvider>
@@ -286,99 +379,6 @@ const Profile = () => {
                           >
                             <Trash2 className="h-4 w-4 text-[#dc2626]" />
                           </Button>
-                        </div>
-                      ))}
-                    </div>
-                    
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-between">
-                        <h3 className="text-lg font-medium text-[#0f172a]">Secondary Contacts</h3>
-                        <Button 
-                          type="button" 
-                          variant="outline" 
-                          size="sm" 
-                          onClick={addSecondaryContact}
-                          className="border-[#0f766e] text-[#0f766e] hover:bg-[#14b8a6] hover:text-white"
-                        >
-                          <PlusCircle className="h-4 w-4 mr-2" />
-                          Add Contact
-                        </Button>
-                      </div>
-                      
-                      {profileForm.watch("secondaryContacts").map((_, index) => (
-                        <div key={index} className="space-y-4 p-4 border border-[#e2e8f0] rounded-md">
-                          <div className="flex justify-between items-center">
-                            <h4 className="font-medium text-[#0f172a]">Contact #{index + 1}</h4>
-                            <Button 
-                              type="button" 
-                              variant="ghost" 
-                              size="icon" 
-                              onClick={() => removeSecondaryContact(index)}
-                              className="hover:bg-[#14b8a6] hover:text-[#0f766e]"
-                              disabled={profileForm.watch("secondaryContacts").length <= 1}
-                            >
-                              <Trash2 className="h-4 w-4 text-[#dc2626]" />
-                            </Button>
-                          </div>
-                          
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <FormField
-                              control={profileForm.control}
-                              name={`secondaryContacts.${index}.name`}
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel className="text-[#475569]">Name</FormLabel>
-                                  <FormControl>
-                                    <Input 
-                                      placeholder="Contact name" 
-                                      {...field} 
-                                      className="border-[#cbd5e1] focus:ring-[#0f766e] focus:border-[#0f766e]"
-                                    />
-                                  </FormControl>
-                                  <FormMessage className="text-[#dc2626]" />
-                                </FormItem>
-                              )}
-                            />
-                            
-                            <FormField
-                              control={profileForm.control}
-                              name={`secondaryContacts.${index}.email`}
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel className="text-[#475569]">Email</FormLabel>
-                                  <FormControl>
-                                    <Input 
-                                      placeholder="Contact email" 
-                                      {...field} 
-                                      className="border-[#cbd5e1] focus:ring-[#0f766e] focus:border-[#0f766e]"
-                                    />
-                                  </FormControl>
-                                  <FormMessage className="text-[#dc2626]" />
-                                </FormItem>
-                              )}
-                            />
-                            
-                            <FormField
-                              control={profileForm.control}
-                              name={`secondaryContacts.${index}.relationship`}
-                              render={({ field }) => (
-                                <FormItem className="md:col-span-2">
-                                  <FormLabel className="text-[#475569]">Relationship (Optional)</FormLabel>
-                                  <FormControl>
-                                    <Input 
-                                      placeholder="e.g. Doctor, Family member" 
-                                      {...field} 
-                                      className="border-[#cbd5e1] focus:ring-[#0f766e] focus:border-[#0f766e]"
-                                    />
-                                  </FormControl>
-                                  <FormDescription className="text-[#475569]">
-                                    Specify the relationship with this contact
-                                  </FormDescription>
-                                  <FormMessage className="text-[#dc2626]" />
-                                </FormItem>
-                              )}
-                            />
-                          </div>
                         </div>
                       ))}
                     </div>

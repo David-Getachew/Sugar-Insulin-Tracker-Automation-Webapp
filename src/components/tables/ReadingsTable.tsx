@@ -11,8 +11,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { format, addMonths } from "date-fns";
-import { Calendar as CalendarIcon, AlertTriangle } from "lucide-react";
+import { format } from "date-fns";
+import { Calendar as CalendarIcon, AlertTriangle, ArrowUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { DateRange } from "react-day-picker";
 
@@ -49,6 +49,7 @@ const ReadingsTable = () => {
   const [date, setDate] = useState<Date | undefined>(undefined);
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const [currentPage, setCurrentPage] = useState(1);
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const itemsPerPage = 7;
   
   // Generate 100 days of mock data for pagination demo
@@ -67,10 +68,17 @@ const ReadingsTable = () => {
       )
     : allData;
   
+  // Sort data based on date
+  const sortedData = [...filteredData].sort((a, b) => {
+    return sortOrder === "asc" 
+      ? a.date.getTime() - b.date.getTime()
+      : b.date.getTime() - a.date.getTime();
+  });
+  
   // Pagination
-  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+  const totalPages = Math.ceil(sortedData.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedData = filteredData.slice(startIndex, startIndex + itemsPerPage);
+  const paginatedData = sortedData.slice(startIndex, startIndex + itemsPerPage);
   
   const clearFilters = () => {
     setDate(undefined);
@@ -83,11 +91,26 @@ const ReadingsTable = () => {
     return value < 70 || value > 180;
   };
 
+  // Toggle sort order
+  const toggleSortOrder = () => {
+    setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+    setCurrentPage(1); // Reset to first page when sorting changes
+  };
+
   return (
     <Card className="w-full bg-white border border-[#e2e8f0]">
       <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between pb-2 gap-4">
         <CardTitle className="text-lg font-medium text-[#0f766e]">Readings History</CardTitle>
         <div className="flex flex-wrap items-center gap-2">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={toggleSortOrder}
+            className="border-[#cbd5e1]"
+          >
+            <ArrowUpDown className="h-4 w-4 text-[#475569]" />
+          </Button>
+          
           <Popover>
             <PopoverTrigger asChild>
               <Button
@@ -223,7 +246,7 @@ const ReadingsTable = () => {
         {totalPages > 1 && (
           <div className="flex items-center justify-between mt-4">
             <div className="text-sm text-[#475569]">
-              Showing {startIndex + 1}-{Math.min(startIndex + itemsPerPage, filteredData.length)} of {filteredData.length} results
+              Showing {startIndex + 1}-{Math.min(startIndex + itemsPerPage, sortedData.length)} of {sortedData.length} results
             </div>
             <div className="flex items-center space-x-2">
               <Button
