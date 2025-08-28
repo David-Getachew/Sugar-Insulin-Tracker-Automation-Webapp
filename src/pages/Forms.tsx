@@ -48,7 +48,7 @@ const emergencyFormSchema = z.object({
     z.number().min(1, "Sugar level is required").max(500, "Value too high")
   ),
   symptoms: z.string().min(1, "Please describe the symptoms"),
-  actionsTaken: z.string().min(1, "Please describe actions taken"),
+  actionsTaken: z.string().optional(),
   medicationsGiven: z.array(
     z.object({
       name: z.string().min(1, "Medication name is required"),
@@ -57,8 +57,15 @@ const emergencyFormSchema = z.object({
         z.number().min(0.1, "Dose must be greater than 0").max(100, "Value too high")
       ),
     })
-  ).min(1, "At least one medication is required"),
+  ).optional(),
   notes: z.string().optional(),
+}).refine(data => {
+  // If medicationsGiven exists, it must have at least one item
+  if (data.medicationsGiven && data.medicationsGiven.length > 0) {
+    return true;
+  }
+  // If medicationsGiven doesn't exist or is empty, that's fine
+  return true;
 });
 
 type ReadingFormValues = z.infer<typeof readingFormSchema>;
@@ -132,7 +139,7 @@ const Forms = () => {
   };
 
   const addMedication = () => {
-    const currentMedications = emergencyForm.getValues("medicationsGiven");
+    const currentMedications = emergencyForm.getValues("medicationsGiven") || [];
     emergencyForm.setValue("medicationsGiven", [
       ...currentMedications,
       { name: "", dose: undefined }
@@ -140,7 +147,7 @@ const Forms = () => {
   };
 
   const removeMedication = (index: number) => {
-    const currentMedications = emergencyForm.getValues("medicationsGiven");
+    const currentMedications = emergencyForm.getValues("medicationsGiven") || [];
     emergencyForm.setValue("medicationsGiven", currentMedications.filter((_, i) => i !== index));
   };
 
@@ -182,7 +189,9 @@ const Forms = () => {
                     name="date"
                     render={({ field }) => (
                       <FormItem className="flex flex-col">
-                        <FormLabel className="text-[#475569]">Date</FormLabel>
+                        <FormLabel className="text-[#475569]">
+                          Date <span className="text-[#dc2626]">*</span>
+                        </FormLabel>
                         <Popover open={openDatePicker} onOpenChange={setOpenDatePicker}>
                           <PopoverTrigger asChild>
                             <FormControl>
@@ -224,7 +233,9 @@ const Forms = () => {
                       name="morningSugar"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-[#475569]">Morning Sugar Level (mg/dL)</FormLabel>
+                          <FormLabel className="text-[#475569]">
+                            Morning Sugar Level (mg/dL) <span className="text-[#dc2626]">*</span>
+                          </FormLabel>
                           <FormControl>
                             <Input 
                               type="number" 
@@ -244,7 +255,9 @@ const Forms = () => {
                       name="nightSugar"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-[#475569]">Night Sugar Level (mg/dL)</FormLabel>
+                          <FormLabel className="text-[#475569]">
+                            Night Sugar Level (mg/dL) <span className="text-[#dc2626]">*</span>
+                          </FormLabel>
                           <FormControl>
                             <Input 
                               type="number" 
@@ -264,7 +277,9 @@ const Forms = () => {
                       name="morningDose"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-[#475569]">Morning Dose (units)</FormLabel>
+                          <FormLabel className="text-[#475569]">
+                            Morning Dose (units) <span className="text-[#dc2626]">*</span>
+                          </FormLabel>
                           <FormControl>
                             <Input 
                               type="number" 
@@ -285,7 +300,9 @@ const Forms = () => {
                       name="nightDose"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-[#475569]">Night Dose (units)</FormLabel>
+                          <FormLabel className="text-[#475569]">
+                            Night Dose (units) <span className="text-[#dc2626]">*</span>
+                          </FormLabel>
                           <FormControl>
                             <Input 
                               type="number" 
@@ -343,7 +360,9 @@ const Forms = () => {
                     name="date"
                     render={({ field }) => (
                       <FormItem className="flex flex-col">
-                        <FormLabel className="text-[#475569]">Date & Time</FormLabel>
+                        <FormLabel className="text-[#475569]">
+                          Date & Time <span className="text-[#dc2626]">*</span>
+                        </FormLabel>
                         <Popover open={openEmergencyDatePicker} onOpenChange={setOpenEmergencyDatePicker}>
                           <PopoverTrigger asChild>
                             <FormControl>
@@ -384,7 +403,9 @@ const Forms = () => {
                     name="sugarLevel"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-[#475569]">Sugar Level (mg/dL)</FormLabel>
+                        <FormLabel className="text-[#475569]">
+                          Sugar Level (mg/dL) <span className="text-[#dc2626]">*</span>
+                        </FormLabel>
                         <FormControl>
                           <Input 
                             type="number" 
@@ -404,7 +425,9 @@ const Forms = () => {
                     name="symptoms"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-[#475569]">Symptoms</FormLabel>
+                        <FormLabel className="text-[#475569]">
+                          Symptoms <span className="text-[#dc2626]">*</span>
+                        </FormLabel>
                         <FormControl>
                           <Textarea
                             placeholder="Describe the symptoms experienced..."
@@ -450,58 +473,68 @@ const Forms = () => {
                       </Button>
                     </div>
                     
-                    {emergencyForm.watch("medicationsGiven").map((_, index) => (
-                      <div key={index} className="flex items-end gap-4">
-                        <FormField
-                          control={emergencyForm.control}
-                          name={`medicationsGiven.${index}.name`}
-                          render={({ field }) => (
-                            <FormItem className="flex-1">
-                              <FormLabel className="text-[#475569]">Medication Name</FormLabel>
-                              <FormControl>
-                                <Input 
-                                  placeholder="e.g. Glucagon" 
-                                  {...field} 
-                                  className="border-[#cbd5e1] focus:ring-[#0f766e] focus:border-[#0f766e]"
-                                />
-                              </FormControl>
-                              <FormMessage className="text-[#dc2626]" />
-                            </FormItem>
-                          )}
-                        />
-                        
-                        <FormField
-                          control={emergencyForm.control}
-                          name={`medicationsGiven.${index}.dose`}
-                          render={({ field }) => (
-                            <FormItem className="w-32">
-                              <FormLabel className="text-[#475569]">Dose</FormLabel>
-                              <FormControl>
-                                <Input 
-                                  type="number" 
-                                  step="0.1"
-                                  placeholder="e.g. 1.0" 
-                                  {...field} 
-                                  onChange={(e) => field.onChange(e.target.value === "" ? "" : Number(e.target.value))}
-                                  className="border-[#cbd5e1] focus:ring-[#0f766e] focus:border-[#0f766e]"
-                                />
-                              </FormControl>
-                              <FormMessage className="text-[#dc2626]" />
-                            </FormItem>
-                          )}
-                        />
-                        
-                        <Button 
-                          type="button" 
-                          variant="ghost" 
-                          size="icon" 
-                          onClick={() => removeMedication(index)}
-                          className="mb-2 hover:bg-[#14b8a6] hover:text-[#0f766e]"
-                        >
-                          <Trash2 className="h-4 w-4 text-[#dc2626]" />
-                        </Button>
+                    {emergencyForm.watch("medicationsGiven") && emergencyForm.watch("medicationsGiven")!.length > 0 ? (
+                      emergencyForm.watch("medicationsGiven")!.map((_, index) => (
+                        <div key={index} className="flex items-end gap-4">
+                          <FormField
+                            control={emergencyForm.control}
+                            name={`medicationsGiven.${index}.name`}
+                            render={({ field }) => (
+                              <FormItem className="flex-1">
+                                <FormLabel className="text-[#475569]">
+                                  Medication Name <span className="text-[#dc2626]">*</span>
+                                </FormLabel>
+                                <FormControl>
+                                  <Input 
+                                    placeholder="e.g. Glucagon" 
+                                    {...field} 
+                                    className="border-[#cbd5e1] focus:ring-[#0f766e] focus:border-[#0f766e]"
+                                  />
+                                </FormControl>
+                                <FormMessage className="text-[#dc2626]" />
+                              </FormItem>
+                            )}
+                          />
+                          
+                          <FormField
+                            control={emergencyForm.control}
+                            name={`medicationsGiven.${index}.dose`}
+                            render={({ field }) => (
+                              <FormItem className="w-32">
+                                <FormLabel className="text-[#475569]">
+                                  Dose <span className="text-[#dc2626]">*</span>
+                                </FormLabel>
+                                <FormControl>
+                                  <Input 
+                                    type="number" 
+                                    step="0.1"
+                                    placeholder="e.g. 1.0" 
+                                    {...field} 
+                                    onChange={(e) => field.onChange(e.target.value === "" ? "" : Number(e.target.value))}
+                                    className="border-[#cbd5e1] focus:ring-[#0f766e] focus:border-[#0f766e]"
+                                  />
+                                </FormControl>
+                                <FormMessage className="text-[#dc2626]" />
+                              </FormItem>
+                            )}
+                          />
+                          
+                          <Button 
+                            type="button" 
+                            variant="ghost" 
+                            size="icon" 
+                            onClick={() => removeMedication(index)}
+                            className="mb-2 hover:bg-[#14b8a6] hover:text-[#0f766e]"
+                          >
+                            <Trash2 className="h-4 w-4 text-[#dc2626]" />
+                          </Button>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="text-sm text-[#475569] italic">
+                        No medications added. You can add medications using the "Add Medication" button above.
                       </div>
-                    ))}
+                    )}
                   </div>
                   
                   <FormField
