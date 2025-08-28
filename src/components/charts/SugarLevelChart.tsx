@@ -66,14 +66,14 @@ const SugarLevelChart = () => {
                 type="monotone"
                 dataKey="morningSugar"
                 name="Morning Sugar"
-                stroke="#8884d8"
+                stroke="#1386c1"
                 activeDot={{ r: 8 }}
               />
               <Line
                 type="monotone"
                 dataKey="nightSugar"
                 name="Night Sugar"
-                stroke="#82ca9d"
+                stroke="#0d9488"
                 activeDot={{ r: 8 }}
               />
             </LineChart>

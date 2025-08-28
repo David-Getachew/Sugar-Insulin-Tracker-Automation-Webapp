@@ -62,8 +62,8 @@ const InsulinDoseChart = () => {
               <YAxis domain={[0, 20]} />
               <Tooltip />
               <Legend />
-              <Bar dataKey="morningDose" name="Morning Dose" fill="#8884d8" />
-              <Bar dataKey="nightDose" name="Night Dose" fill="#82ca9d" />
+              <Bar dataKey="morningDose" name="Morning Dose" fill="#1386c1" />
+              <Bar dataKey="nightDose" name="Night Dose" fill="#0d9488" />
             </BarChart>
           </ResponsiveContainer>
         </div>

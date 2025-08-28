@@ -1,17 +1,11 @@
-import { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { 
   LayoutDashboard, 
   FileInput, 
   UserCircle, 
-  LogOut,
-  Menu,
-  X,
-  ChevronLeft,
-  ChevronRight
+  LogOut
 } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { showSuccess } from "@/utils/toast";
 
 interface MainLayoutProps {
@@ -21,7 +15,6 @@ interface MainLayoutProps {
 const MainLayout = ({ children }: MainLayoutProps) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [sidebarOpen, setSidebarOpen] = useState(true);
 
   const handleLogout = () => {
     showSuccess("Successfully logged out");
@@ -37,75 +30,32 @@ const MainLayout = ({ children }: MainLayoutProps) => {
   return (
     <div className="min-h-screen bg-gray-50 flex">
       {/* Sidebar */}
-      <div 
-        className={cn(
-          "bg-white border-r border-gray-200 flex flex-col transition-all duration-300 sticky top-0 h-screen",
-          sidebarOpen ? "w-64" : "w-20"
-        )}
-      >
-        <div className="flex items-center justify-between p-4 border-b border-gray-200">
-          {sidebarOpen && (
-            <Link 
-              to="/dashboard" 
-              className="text-xl font-bold text-primary whitespace-nowrap"
-              onClick={(e) => {
-                if (!sidebarOpen) {
-                  e.preventDefault();
-                  navigate("/dashboard");
-                }
-              }}
-            >
-              Sugar & Insulin Tracker
-            </Link>
-          )}
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="ml-auto rounded-full hover:bg-gray-100"
-          >
-            {sidebarOpen ? <ChevronLeft className="h-5 w-5" /> : <ChevronRight className="h-5 w-5" />}
-          </Button>
-        </div>
-        
-        <nav className="flex-1 py-4 overflow-y-auto">
+      <div className="bg-[#115e59] flex flex-col w-16 sticky top-0 h-screen">
+        <nav className="flex-1 py-4">
           {navItems.map((item) => (
             <Link
               key={item.path}
               to={item.path}
-              className={cn(
-                "flex items-center px-4 py-3 text-sm font-medium transition-colors",
-                location.pathname === item.path
-                  ? "bg-primary text-primary-foreground"
-                  : "text-gray-600 hover:bg-gray-100",
-                sidebarOpen ? "justify-start" : "justify-center"
-              )}
-              onClick={(e) => {
-                if (!sidebarOpen) {
-                  e.preventDefault();
-                  navigate(item.path);
+              className={`
+                flex items-center justify-center px-2 py-4 text-sm font-medium transition-colors
+                ${location.pathname === item.path
+                  ? "bg-[#0d9488] text-white"
+                  : "text-gray-200 hover:bg-[#0f766e]"
                 }
-              }}
+              `}
             >
-              <span className={cn(sidebarOpen ? "mr-3" : "mr-0")}>
-                {item.icon}
-              </span>
-              {sidebarOpen && <span>{item.label}</span>}
+              <span>{item.icon}</span>
             </Link>
           ))}
         </nav>
         
-        <div className="p-4 border-t border-gray-200 mt-auto">
+        <div className="p-2 border-t border-gray-700">
           <Button 
             variant="ghost" 
-            className={cn(
-              "w-full flex items-center hover:bg-red-50 hover:text-red-600",
-              sidebarOpen ? "justify-start" : "justify-center"
-            )}
+            className="w-full flex items-center justify-center p-2 hover:bg-[#0f766e] text-gray-200 hover:text-white"
             onClick={handleLogout}
           >
-            <LogOut className={cn("h-5 w-5", sidebarOpen ? "mr-3" : "mr-0")} />
-            {sidebarOpen && <span>Logout</span>}
+            <LogOut className="h-5 w-5" />
           </Button>
         </div>
       </div>
