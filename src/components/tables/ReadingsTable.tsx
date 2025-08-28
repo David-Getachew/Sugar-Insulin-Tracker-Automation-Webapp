@@ -30,7 +30,7 @@ const generateMockData = (days: number) => {
     
     data.push({
       id: i,
-      date: date,
+      date: new Date(date), // Create a new Date object to avoid reference issues
       morningSugar: isAbnormal 
         ? Math.random() > 0.5 ? Math.floor(Math.random() * 50) + 200 : Math.floor(Math.random() * 30) + 50
         : Math.floor(Math.random() * 50) + 80,
