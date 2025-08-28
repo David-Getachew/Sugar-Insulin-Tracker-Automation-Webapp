@@ -30,7 +30,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
   return (
     <div className="min-h-screen bg-gray-50 flex">
       {/* Sidebar */}
-      <div className="bg-[#115e59] flex flex-col w-16 sticky top-0 h-screen">
+      <div className="bg-[#115e59] flex flex-col w-20 sticky top-0 h-screen">
         <nav className="flex-1 py-4">
           {navItems.map((item) => (
             <Link
@@ -44,7 +44,10 @@ const MainLayout = ({ children }: MainLayoutProps) => {
                 }
               `}
             >
-              <span>{item.icon}</span>
+              <div className="flex flex-col items-center">
+                <span>{item.icon}</span>
+                <span className="text-xs mt-1">{item.label}</span>
+              </div>
             </Link>
           ))}
         </nav>
@@ -55,7 +58,10 @@ const MainLayout = ({ children }: MainLayoutProps) => {
             className="w-full flex items-center justify-center p-2 hover:bg-[#0f766e] text-gray-200 hover:text-white"
             onClick={handleLogout}
           >
-            <LogOut className="h-5 w-5" />
+            <div className="flex flex-col items-center">
+              <LogOut className="h-5 w-5" />
+              <span className="text-xs mt-1">Logout</span>
+            </div>
           </Button>
         </div>
       </div>

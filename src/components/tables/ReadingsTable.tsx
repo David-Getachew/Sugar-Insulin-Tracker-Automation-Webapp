@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format, addMonths } from "date-fns";
-import { Calendar as CalendarIcon } from "lucide-react";
+import { Calendar as CalendarIcon, AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { DateRange } from "react-day-picker";
 
@@ -25,11 +25,18 @@ const generateMockData = (days: number) => {
     const date = new Date(today);
     date.setDate(today.getDate() - i);
     
+    // Generate some abnormal readings for demonstration
+    const isAbnormal = Math.random() > 0.8; // 20% chance of abnormal reading
+    
     data.push({
       id: i,
       date: date,
-      morningSugar: Math.floor(Math.random() * 50) + 80, // Random between 80-130
-      nightSugar: Math.floor(Math.random() * 60) + 90, // Random between 90-150
+      morningSugar: isAbnormal 
+        ? Math.random() > 0.5 ? Math.floor(Math.random() * 50) + 200 : Math.floor(Math.random() * 30) + 50
+        : Math.floor(Math.random() * 50) + 80,
+      nightSugar: isAbnormal 
+        ? Math.random() > 0.5 ? Math.floor(Math.random() * 100) + 200 : Math.floor(Math.random() * 40) + 50
+        : Math.floor(Math.random() * 60) + 90,
       morningDose: Math.floor(Math.random() * 5) + 10, // Random between 10-15
       nightDose: Math.floor(Math.random() * 5) + 8, // Random between 8-13
     });
@@ -42,7 +49,7 @@ const ReadingsTable = () => {
   const [date, setDate] = useState<Date | undefined>(undefined);
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 7; // Changed to 7 items per page
+  const itemsPerPage = 7;
   
   // Generate 100 days of mock data for pagination demo
   const allData = generateMockData(100);
@@ -69,6 +76,11 @@ const ReadingsTable = () => {
     setDate(undefined);
     setDateRange(undefined);
     setCurrentPage(1);
+  };
+
+  // Function to check if a sugar level is abnormal
+  const isAbnormalSugar = (value: number) => {
+    return value < 70 || value > 180;
   };
 
   return (
@@ -158,8 +170,22 @@ const ReadingsTable = () => {
                 paginatedData.map((reading) => (
                   <TableRow key={reading.id}>
                     <TableCell className="font-medium">{format(reading.date, "MMM d, yyyy")}</TableCell>
-                    <TableCell>{reading.morningSugar}</TableCell>
-                    <TableCell>{reading.nightSugar}</TableCell>
+                    <TableCell>
+                      <div className="flex items-center">
+                        {reading.morningSugar}
+                        {isAbnormalSugar(reading.morningSugar) && (
+                          <AlertTriangle className="h-4 w-4 text-yellow-500 ml-2" />
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center">
+                        {reading.nightSugar}
+                        {isAbnormalSugar(reading.nightSugar) && (
+                          <AlertTriangle className="h-4 w-4 text-yellow-500 ml-2" />
+                        )}
+                      </div>
+                    </TableCell>
                     <TableCell>{reading.morningDose}</TableCell>
                     <TableCell>{reading.nightDose}</TableCell>
                   </TableRow>
