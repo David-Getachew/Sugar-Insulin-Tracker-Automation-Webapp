@@ -11,7 +11,7 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
-import { Calendar as CalendarIcon, PlusCircle, Trash2 } from "lucide-react";
+import { Calendar as CalendarIcon, PlusCircle, Trash2, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { showSuccess } from "@/utils/toast";
 
@@ -42,6 +42,9 @@ const readingFormSchema = z.object({
 const emergencyFormSchema = z.object({
   date: z.date({
     required_error: "Please select a date",
+  }),
+  time: z.string({
+    required_error: "Please enter a time",
   }),
   sugarLevel: z.preprocess(
     (val) => (val === "" || val === undefined ? undefined : Number(val)),
@@ -97,6 +100,7 @@ const Forms = () => {
       actionsTaken: "",
       medicationsGiven: [], // Empty by default like telegram handles
       notes: "",
+      time: "",
     },
   });
 
@@ -130,6 +134,7 @@ const Forms = () => {
         actionsTaken: "",
         medicationsGiven: [], // Empty by default
         notes: "",
+        time: "",
       });
     } catch (error) {
       console.error("Error submitting emergency form:", error);
@@ -355,48 +360,73 @@ const Forms = () => {
             <CardContent>
               <Form {...emergencyForm}>
                 <form onSubmit={emergencyForm.handleSubmit(onEmergencySubmit)} className="space-y-6">
-                  <FormField
-                    control={emergencyForm.control}
-                    name="date"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-col">
-                        <FormLabel className="text-[#475569]">
-                          Date & Time <span className="text-[#dc2626]">*</span>
-                        </FormLabel>
-                        <Popover open={openEmergencyDatePicker} onOpenChange={setOpenEmergencyDatePicker}>
-                          <PopoverTrigger asChild>
-                            <FormControl>
-                              <Button
-                                variant={"outline"}
-                                className={cn(
-                                  "w-full pl-3 text-left font-normal justify-start",
-                                  !field.value && "text-[#475569]"
-                                )}
-                              >
-                                <CalendarIcon className="mr-2 h-4 w-4" />
-                                {field.value ? format(field.value, "PPP") : "Select date"}
-                              </Button>
-                            </FormControl>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0" align="start">
-                            <Calendar
-                              mode="single"
-                              selected={field.value}
-                              onSelect={(date) => {
-                                field.onChange(date);
-                                setOpenEmergencyDatePicker(false); // Close picker after selection
-                              }}
-                              disabled={(date) =>
-                                date > new Date() || date < new Date("1900-01-01")
-                              }
-                              initialFocus
-                            />
-                          </PopoverContent>
-                        </Popover>
-                        <FormMessage className="text-[#dc2626]" />
-                      </FormItem>
-                    )}
-                  />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <FormField
+                      control={emergencyForm.control}
+                      name="date"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-col">
+                          <FormLabel className="text-[#475569]">
+                            Date <span className="text-[#dc2626]">*</span>
+                          </FormLabel>
+                          <Popover open={openEmergencyDatePicker} onOpenChange={setOpenEmergencyDatePicker}>
+                            <PopoverTrigger asChild>
+                              <FormControl>
+                                <Button
+                                  variant={"outline"}
+                                  className={cn(
+                                    "w-full pl-3 text-left font-normal justify-start",
+                                    !field.value && "text-[#475569]"
+                                  )}
+                                >
+                                  <CalendarIcon className="mr-2 h-4 w-4" />
+                                  {field.value ? format(field.value, "PPP") : "Select date"}
+                                </Button>
+                              </FormControl>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                              <Calendar
+                                mode="single"
+                                selected={field.value}
+                                onSelect={(date) => {
+                                  field.onChange(date);
+                                  setOpenEmergencyDatePicker(false); // Close picker after selection
+                                }}
+                                disabled={(date) =>
+                                  date > new Date() || date < new Date("1900-01-01")
+                                }
+                                initialFocus
+                              />
+                            </PopoverContent>
+                          </Popover>
+                          <FormMessage className="text-[#dc2626]" />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={emergencyForm.control}
+                      name="time"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-col">
+                          <FormLabel className="text-[#475569]">
+                            Time <span className="text-[#dc2626]">*</span>
+                          </FormLabel>
+                          <FormControl>
+                            <div className="relative">
+                              <Input
+                                type="time"
+                                {...field}
+                                className="border-[#cbd5e1] focus:ring-[#0f766e] focus:border-[#0f766e] pr-10"
+                              />
+                              <Clock className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-[#94a3b8]" />
+                            </div>
+                          </FormControl>
+                          <FormMessage className="text-[#dc2626]" />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
                   
                   <FormField
                     control={emergencyForm.control}

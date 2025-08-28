@@ -213,7 +213,7 @@ const Profile = () => {
                     <div className="space-y-4">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center">
-                          <h3 className="text-lg font-medium text-[#0f172a]">Telegram IDs</h3>
+                          <h3 className="text-lg font-medium text-[#0f172a]">Telegram IDs (for daily summaries)</h3>
                           <TooltipProvider delayDuration={0}>
                             <Tooltip>
                               <TooltipTrigger asChild>
@@ -226,6 +226,7 @@ const Profile = () => {
                                 <p className="text-[#475569]">
                                   To get your Telegram ID, message the @userinfobot on Telegram. 
                                   The bot will reply with your ID which you can use here.
+                                  These contacts will receive daily summaries of your readings.
                                 </p>
                               </TooltipContent>
                             </Tooltip>
@@ -245,7 +246,7 @@ const Profile = () => {
                       
                       {profileForm.watch("telegramIds").length === 0 && (
                         <div className="text-sm text-[#475569] italic">
-                          No Telegram IDs added. Add at least one ID or a secondary contact.
+                          No Telegram IDs added. Add at least one ID or a secondary contact to receive daily summaries.
                         </div>
                       )}
                       
@@ -303,7 +304,7 @@ const Profile = () => {
                     
                     <div className="space-y-4">
                       <div className="flex items-center justify-between">
-                        <h3 className="text-lg font-medium text-[#0f172a]">Secondary Contacts</h3>
+                        <h3 className="text-lg font-medium text-[#0f172a]">Secondary Contacts (for daily summaries)</h3>
                         <Button 
                           type="button" 
                           variant="outline" 
@@ -318,7 +319,7 @@ const Profile = () => {
                       
                       {profileForm.watch("secondaryContacts").length === 0 && (
                         <div className="text-sm text-[#475569] italic">
-                          No secondary contacts added. Add at least one contact or a Telegram ID.
+                          No secondary contacts added. Add at least one contact or a Telegram ID to receive daily summaries.
                         </div>
                       )}
                       
@@ -389,7 +390,7 @@ const Profile = () => {
                                     />
                                   </FormControl>
                                   <FormDescription className="text-[#475569]">
-                                    Specify the relationship with this contact
+                                    Specify the relationship with this contact. These contacts will receive daily summaries of your readings.
                                   </FormDescription>
                                   <FormMessage className="text-[#dc2626]" />
                                 </FormItem>
