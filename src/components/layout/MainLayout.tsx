@@ -39,7 +39,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
       {/* Sidebar */}
       <div 
         className={cn(
-          "bg-white border-r border-gray-200 flex flex-col transition-all duration-300",
+          "bg-white border-r border-gray-200 flex flex-col transition-all duration-300 sticky top-0 h-screen",
           sidebarOpen ? "w-64" : "w-20"
         )}
       >
@@ -68,7 +68,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
           </Button>
         </div>
         
-        <nav className="flex-1 py-4">
+        <nav className="flex-1 py-4 overflow-y-auto">
           {navItems.map((item) => (
             <Link
               key={item.path}
@@ -95,7 +95,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
           ))}
         </nav>
         
-        <div className="p-4 border-t border-gray-200">
+        <div className="p-4 border-t border-gray-200 mt-auto">
           <Button 
             variant="ghost" 
             className={cn(
