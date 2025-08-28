@@ -1,11 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { Area, AreaChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from "recharts";
+import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip, Legend } from "recharts";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-// Mock data for sugar levels
+// Mock data for doses
 const generateMockData = (days: number) => {
   const data = [];
   const today = new Date();
@@ -16,15 +16,15 @@ const generateMockData = (days: number) => {
     
     data.push({
       date: date.toISOString().split('T')[0],
-      morning: Math.floor(Math.random() * 100) + 80,
-      evening: Math.floor(Math.random() * 100) + 80,
+      morning: Math.floor(Math.random() * 10) + 5,
+      evening: Math.floor(Math.random() * 10) + 5,
     });
   }
   
   return data;
 };
 
-const SugarLevelChart = () => {
+const DoseChart = () => {
   const [timeRange, setTimeRange] = useState("30");
   
   // Generate data based on selected time range
@@ -34,9 +34,9 @@ const SugarLevelChart = () => {
     <Card className="w-full bg-white border border-[#e2e8f0]">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <div>
-          <h3 className="text-lg font-medium text-[#0f766e]">Sugar Levels</h3>
+          <h3 className="text-lg font-medium text-[#0f766e]">Dose Tracking</h3>
           <p className="text-sm text-[#475569] mt-1">
-            Track your blood sugar levels over time. Use the filter to adjust the time range.
+            Monitor your medication doses over time. Adjust the time range to see historical data.
           </p>
         </div>
         <Select
@@ -56,7 +56,7 @@ const SugarLevelChart = () => {
       <CardContent className="pb-4">
         <div className="h-[250px]">
           <ResponsiveContainer width="100%" height="100%">
-            <AreaChart
+            <BarChart
               data={data}
               margin={{
                 top: 10,
@@ -72,7 +72,6 @@ const SugarLevelChart = () => {
                 axisLine={false}
               />
               <YAxis 
-                domain={[50, 250]} 
                 tick={{ fontSize: 12, fill: '#475569' }}
                 tickLine={false}
                 axisLine={false}
@@ -87,25 +86,27 @@ const SugarLevelChart = () => {
                 labelStyle={{ color: '#0f172a', fontWeight: '500' }}
                 itemStyle={{ color: '#475569' }}
               />
-              <Area
-                type="monotone"
+              <Legend 
+                wrapperStyle={{ paddingBottom: '10px' }}
+                formatter={(value) => (
+                  <span style={{ color: '#475569' }}>
+                    {value === 'morning' ? 'Morning Dose' : 'Evening Dose'}
+                  </span>
+                )}
+              />
+              <Bar
                 dataKey="morning"
-                stackId="1"
-                stroke="#14b8a6"
+                name="morning"
                 fill="#14b8a6"
-                fillOpacity={0.2}
-                name="Morning"
+                radius={[4, 4, 0, 0]}
               />
-              <Area
-                type="monotone"
+              <Bar
                 dataKey="evening"
-                stackId="2"
-                stroke="#0f766e"
+                name="evening"
                 fill="#0f766e"
-                fillOpacity={0.2}
-                name="Evening"
+                radius={[4, 4, 0, 0]}
               />
-            </AreaChart>
+            </BarChart>
           </ResponsiveContainer>
         </div>
       </CardContent>
@@ -113,4 +114,4 @@ const SugarLevelChart = () => {
   );
 };
 
-export default SugarLevelChart;
+export default DoseChart;

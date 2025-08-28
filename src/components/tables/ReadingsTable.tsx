@@ -7,7 +7,7 @@ import {
   TableHeader, 
   TableRow 
 } from "@/components/ui/table";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -133,7 +133,12 @@ const ReadingsTable = () => {
   return (
     <Card className="w-full bg-white border border-[#e2e8f0]">
       <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between pb-2 gap-4">
-        <CardTitle className="text-lg font-medium text-[#0f766e]">Readings History</CardTitle>
+        <div>
+          <h3 className="text-lg font-medium text-[#0f766e]">Readings History</h3>
+          <p className="text-sm text-[#475569] mt-1">
+            View your historical readings. Use filters to narrow down by date or date range. Sort by date using the sort button.
+          </p>
+        </div>
         <div className="flex flex-wrap items-center gap-2">
           {showSortButton && (
             <Button
