@@ -133,6 +133,13 @@ const ReadingsTable = () => {
   return (
     <Card className="w-full bg-white border border-[#e2e8f0]">
       <CardContent className="pt-6">
+        <div className="mb-6">
+          <h2 className="text-xl font-semibold text-[#0f766e]">Readings History</h2>
+          <p className="text-sm text-[#475569] mt-1">
+            View your historical readings. Use filters to narrow down by date or date range. Sort by date using the sort button.
+          </p>
+        </div>
+        
         <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 gap-4">
           <div className="flex flex-wrap items-center gap-2">
             {showSortButton && (

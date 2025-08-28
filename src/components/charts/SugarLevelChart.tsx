@@ -30,6 +30,30 @@ const SugarLevelChart = () => {
   // Generate data based on selected time range
   const data = generateMockData(parseInt(timeRange));
   
+  // Custom tooltip to color the labels
+  const CustomTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="bg-white p-4 border border-[#e2e8f0] rounded-md shadow-md">
+          <p className="font-medium text-[#0f172a]">{label}</p>
+          {payload.map((entry: any, index: number) => (
+            <p key={index} className="flex items-center">
+              <span 
+                className="inline-block w-3 h-3 mr-2 rounded-full" 
+                style={{ backgroundColor: entry.color }}
+              ></span>
+              <span className="text-[#475569]">
+                {entry.name === 'morning' ? 'Morning' : 'Evening'}: 
+              </span>
+              <span className="font-medium ml-1">{entry.value}</span>
+            </p>
+          ))}
+        </div>
+      );
+    }
+    return null;
+  };
+  
   return (
     <Card className="w-full bg-white border border-[#e2e8f0]">
       <CardHeader className="flex flex-row items-center justify-between pb-4">
@@ -77,16 +101,7 @@ const SugarLevelChart = () => {
                 tickLine={false}
                 axisLine={false}
               />
-              <Tooltip
-                contentStyle={{ 
-                  backgroundColor: '#fff', 
-                  borderColor: '#e2e8f0',
-                  borderRadius: '0.5rem',
-                  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
-                }}
-                labelStyle={{ color: '#0f172a', fontWeight: '500' }}
-                itemStyle={{ color: '#475569' }}
-              />
+              <Tooltip content={<CustomTooltip />} />
               <Legend 
                 wrapperStyle={{ paddingBottom: '10px' }}
                 formatter={(value) => (

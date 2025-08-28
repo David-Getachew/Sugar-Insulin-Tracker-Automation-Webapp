@@ -20,10 +20,6 @@ const Dashboard = () => {
         </div>
         
         <div>
-          <h2 className="text-xl font-semibold mb-2 text-[#0f766e]">Readings History</h2>
-          <p className="text-sm text-[#475569] mb-4">
-            View your historical readings. Use filters to narrow down by date or date range. Sort by date using the sort button.
-          </p>
           <ReadingsTable />
         </div>
       </div>
