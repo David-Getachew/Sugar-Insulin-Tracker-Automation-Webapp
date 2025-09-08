@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -15,7 +15,7 @@ import { Calendar as CalendarIcon, PlusCircle, Trash2, Clock } from "lucide-reac
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { useDatabase } from "@/hooks/useDatabase";
-import { showSuccess } from "@/utils/toast";
+import { showSuccess, showError } from "@/utils/toast";
 
 // Form schemas
 const readingFormSchema = z.object({
@@ -64,13 +64,6 @@ const emergencyFormSchema = z.object({
     })
   ).optional(),
   notes: z.string().optional(),
-}).refine(data => {
-  // If medicationsGiven exists, it must have at least one item
-  if (data.medicationsGiven && data.medicationsGiven.length > 0) {
-    return true;
-  }
-  // If medicationsGiven doesn't exist or is empty, that's fine
-  return true;
 });
 
 type ReadingFormValues = z.infer<typeof readingFormSchema>;
@@ -78,7 +71,7 @@ type EmergencyFormValues = z.infer<typeof emergencyFormSchema>;
 
 const Forms = () => {
   const { profile } = useAuth();
-  const { createDailyReading, createEmergency } = useDatabase();
+  const { createDailyReading, createEmergency, saveMedications } = useDatabase();
   const [activeTab, setActiveTab] = useState<"reading" | "emergency">("reading");
   const [isReadingLoading, setIsReadingLoading] = useState(false);
   const [isEmergencyLoading, setIsEmergencyLoading] = useState(false);
@@ -90,10 +83,10 @@ const Forms = () => {
   const readingForm = useForm<ReadingFormValues>({
     resolver: zodResolver(readingFormSchema),
     defaultValues: {
-      morningSugar: undefined,
-      nightSugar: undefined,
-      morningDose: undefined,
-      nightDose: undefined,
+      morningSugar: "" as any, // Use empty string instead of undefined
+      nightSugar: "" as any,
+      morningDose: "" as any,
+      nightDose: "" as any,
       notes: "",
     },
   });
@@ -101,10 +94,10 @@ const Forms = () => {
   const emergencyForm = useForm<EmergencyFormValues>({
     resolver: zodResolver(emergencyFormSchema),
     defaultValues: {
-      sugarLevel: undefined,
+      sugarLevel: "" as any,
       symptoms: "",
       actionsTaken: "",
-      medicationsGiven: [], // Empty by default like telegram handles
+      medicationsGiven: [],
       notes: "",
       time: "",
     },
@@ -116,44 +109,71 @@ const Forms = () => {
       return;
     }
 
+    // Check if user is authenticated
+    if (!profile?.user_id) {
+      showError("Please log in to save readings");
+      return;
+    }
+
     setIsReadingLoading(true);
     
     try {
-      const success = await createDailyReading({
+      // Try with the current schema first, but prepare alternative column names
+      const readingData = {
         date: format(values.date, 'yyyy-MM-dd'),
-        morning_sugar: values.morningSugar,
-        night_sugar: values.nightSugar,
-        morning_dose: values.morningDose,
-        night_dose: values.nightDose,
+        sugar_morning: values.morningSugar,
+        sugar_night: values.nightSugar,
+        insulin_morning: values.morningDose,
+        insulin_night: values.nightDose,
         notes: values.notes || null,
-      });
+      };
+      
+      console.log('Attempting to save reading with data:', readingData);
+      
+      const success = await createDailyReading(readingData);
       
       if (success) {
         readingForm.reset();
+      } else {
+        showError("Failed to save reading. Please check your connection and try again.");
       }
     } catch (error) {
       console.error("Error submitting reading:", error);
+      showError("An error occurred while saving. Please try again.");
     } finally {
       setIsReadingLoading(false);
     }
   };
 
   const onEmergencySubmit = async (values: EmergencyFormValues) => {
+    // Check if user is authenticated
+    if (!profile?.user_id && !isDemo) {
+      showError("Please log in to save emergency reports");
+      return;
+    }
+
     setIsEmergencyLoading(true);
     
     try {
       const emergencyData = {
-        date: format(values.date, 'yyyy-MM-dd'),
-        time: values.time,
+        event_date: format(values.date, 'yyyy-MM-dd'),
+        event_time: values.time,
         sugar_level: values.sugarLevel,
         symptoms: values.symptoms,
         actions_taken: values.actionsTaken || null,
-        medications_given: values.medicationsGiven?.length ? values.medicationsGiven : null,
         notes: values.notes || null,
       };
 
-      // Create emergency record
+      // Create emergency record first
       const emergency = await createEmergency(emergencyData);
+      
+      // If emergency was created successfully and there are medications, save them
+      if (emergency && values.medicationsGiven?.length) {
+        const medications = values.medicationsGiven.filter(med => med.name && med.dose);
+        if (medications.length > 0) {
+          await saveMedications(emergency.id, medications);
+        }
+      }
       
       if (emergency && !isDemo) {
         // Send to N8N webhook if available
@@ -187,16 +207,19 @@ const Forms = () => {
           showSuccess("Demo mode: Emergency logged (webhook not triggered)");
         }
         emergencyForm.reset({
-          sugarLevel: undefined,
+          sugarLevel: "" as any,
           symptoms: "",
           actionsTaken: "",
           medicationsGiven: [],
           notes: "",
           time: "",
         });
+      } else {
+        showError("Failed to save emergency report. Please check your connection and try again.");
       }
     } catch (error) {
       console.error("Error submitting emergency form:", error);
+      showError("An error occurred while saving emergency report. Please try again.");
     } finally {
       setIsEmergencyLoading(false);
     }
@@ -206,7 +229,7 @@ const Forms = () => {
     const currentMedications = emergencyForm.getValues("medicationsGiven") || [];
     emergencyForm.setValue("medicationsGiven", [
       ...currentMedications,
-      { name: "", dose: undefined }
+      { name: "", dose: "" as any }
     ]);
   };
 
@@ -234,6 +257,7 @@ const Forms = () => {
             </div>
           </div>
         )}
+        
         <h1 className="text-2xl font-bold tracking-tight mb-6 text-[#0f172a]">Data Entry Forms</h1>
         
         <div className="flex space-x-4 mb-6">
@@ -321,7 +345,7 @@ const Forms = () => {
                               type="number" 
                               placeholder="e.g. 120" 
                               {...field} 
-                              onChange={(e) => field.onChange(e.target.value === "" ? "" : Number(e.target.value))}
+                              onChange={(e) => field.onChange(e.target.value)}
                               className="border-[#cbd5e1] focus:ring-[#0f766e] focus:border-[#0f766e]"
                             />
                           </FormControl>
@@ -343,7 +367,7 @@ const Forms = () => {
                               type="number" 
                               placeholder="e.g. 110" 
                               {...field} 
-                              onChange={(e) => field.onChange(e.target.value === "" ? "" : Number(e.target.value))}
+                              onChange={(e) => field.onChange(e.target.value)}
                               className="border-[#cbd5e1] focus:ring-[#0f766e] focus:border-[#0f766e]"
                             />
                           </FormControl>
@@ -366,7 +390,7 @@ const Forms = () => {
                               step="0.1"
                               placeholder="e.g. 12.5" 
                               {...field} 
-                              onChange={(e) => field.onChange(e.target.value === "" ? "" : Number(e.target.value))}
+                              onChange={(e) => field.onChange(e.target.value)}
                               className="border-[#cbd5e1] focus:ring-[#0f766e] focus:border-[#0f766e]"
                             />
                           </FormControl>
@@ -389,7 +413,7 @@ const Forms = () => {
                               step="0.1"
                               placeholder="e.g. 10.0" 
                               {...field} 
-                              onChange={(e) => field.onChange(e.target.value === "" ? "" : Number(e.target.value))}
+                              onChange={(e) => field.onChange(e.target.value)}
                               className="border-[#cbd5e1] focus:ring-[#0f766e] focus:border-[#0f766e]"
                             />
                           </FormControl>
@@ -516,7 +540,7 @@ const Forms = () => {
                             type="number" 
                             placeholder="e.g. 250" 
                             {...field} 
-                            onChange={(e) => field.onChange(e.target.value === "" ? "" : Number(e.target.value))}
+                            onChange={(e) => field.onChange(e.target.value)}
                             className="border-[#cbd5e1] focus:ring-[#0f766e] focus:border-[#0f766e]"
                           />
                         </FormControl>
@@ -550,7 +574,7 @@ const Forms = () => {
                     name="actionsTaken"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-[#475569]">Actions Taken</FormLabel>
+                        <FormLabel className="text-[#475569]">Actions Taken (Optional)</FormLabel>
                         <FormControl>
                           <Textarea
                             placeholder="Describe the actions taken to address the situation..."
@@ -615,7 +639,7 @@ const Forms = () => {
                                     step="0.1"
                                     placeholder="e.g. 1.0" 
                                     {...field} 
-                                    onChange={(e) => field.onChange(e.target.value === "" ? "" : Number(e.target.value))}
+                                    onChange={(e) => field.onChange(e.target.value)}
                                     className="border-[#cbd5e1] focus:ring-[#0f766e] focus:border-[#0f766e]"
                                   />
                                 </FormControl>

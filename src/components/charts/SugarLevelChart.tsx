@@ -27,42 +27,35 @@ interface SugarLevelChartProps {
   data?: DailyReading[];
 }
 
-// Mock data for sugar levels
-const generateMockData = (days: number) => {
-  const data = [];
-  const today = new Date();
-  
-  for (let i = days - 1; i >= 0; i--) {
-    const date = new Date(today);
-    date.setDate(today.getDate() - i);
-    
-    data.push({
-      date: date.toISOString().split('T')[0],
-      morning: Math.floor(Math.random() * 100) + 80,
-      evening: Math.floor(Math.random() * 100) + 80,
-    });
-  }
-  
-  return data;
-};
+// Remove mock data generation - no longer needed
+// All data should come from actual user readings
 
 const SugarLevelChart = ({ data = [] }: SugarLevelChartProps) => {
   const [timeRange, setTimeRange] = useState("30");
   
-  // Convert database data to chart format or use mock data
+  // Convert database data to chart format - no mock data
   const getChartData = (): ChartData[] => {
     if (data.length > 0) {
+      // Sort data by date in ascending order (oldest first)
+      const sortedData = [...data].sort((a, b) => 
+        new Date(a.date).getTime() - new Date(b.date).getTime()
+      );
+      
       const days = parseInt(timeRange);
-      const filteredData = data.slice(0, days);
+      // Take the most recent N days (last N items after sorting)
+      const filteredData = days < sortedData.length 
+        ? sortedData.slice(-days)
+        : sortedData;
+        
       return filteredData.map(reading => ({
         date: reading.date,
-        morning: reading.morning_sugar,
-        evening: reading.night_sugar,
+        morning: reading.sugar_morning,
+        evening: reading.sugar_night,
       }));
     }
     
-    // Generate mock data when no real data is available
-    return generateMockData(parseInt(timeRange));
+    // Return empty array when no real data is available
+    return [];
   };
   
   const chartData = getChartData();
@@ -115,59 +108,73 @@ const SugarLevelChart = ({ data = [] }: SugarLevelChartProps) => {
         </Select>
       </CardHeader>
       <CardContent className="pb-4">
-        <div className="h-[250px]">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart
-              data={chartData}
-              margin={{
-                top: 10,
-                right: 10,
-                left: 0,
-                bottom: 0,
-              }}
-            >
-              <XAxis 
-                dataKey="date" 
-                tick={{ fontSize: 12, fill: '#475569' }}
-                tickLine={false}
-                axisLine={false}
-              />
-              <YAxis 
-                domain={[50, 250]} 
-                tick={{ fontSize: 12, fill: '#475569' }}
-                tickLine={false}
-                axisLine={false}
-              />
-              <Tooltip content={<CustomTooltip />} />
-              <Legend 
-                wrapperStyle={{ paddingBottom: '10px' }}
-                formatter={(value) => (
-                  <span style={{ color: '#475569' }}>
-                    {value === 'morning' ? 'Morning' : 'Evening'}
-                  </span>
-                )}
-              />
-              <Line
-                type="monotone"
-                dataKey="morning"
-                stroke="#14b8a6"
-                strokeWidth={2}
-                dot={{ r: 4, fill: '#14b8a6' }}
-                activeDot={{ r: 6, fill: '#14b8a6' }}
-                name="Morning"
-              />
-              <Line
-                type="monotone"
-                dataKey="evening"
-                stroke="#0f766e"
-                strokeWidth={2}
-                dot={{ r: 4, fill: '#0f766e' }}
-                activeDot={{ r: 6, fill: '#0f766e' }}
-                name="Evening"
-              />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
+        {chartData.length > 0 ? (
+          <div className="h-[250px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart
+                data={chartData}
+                margin={{
+                  top: 10,
+                  right: 10,
+                  left: 0,
+                  bottom: 0,
+                }}
+              >
+                <XAxis 
+                  dataKey="date" 
+                  tick={{ fontSize: 12, fill: '#475569' }}
+                  tickLine={false}
+                  axisLine={false}
+                />
+                <YAxis 
+                  domain={[50, 250]} 
+                  tick={{ fontSize: 12, fill: '#475569' }}
+                  tickLine={false}
+                  axisLine={false}
+                />
+                <Tooltip content={<CustomTooltip />} />
+                <Legend 
+                  wrapperStyle={{ paddingBottom: '10px' }}
+                  formatter={(value) => (
+                    <span style={{ color: '#475569' }}>
+                      {value === 'morning' ? 'Morning' : 'Evening'}
+                    </span>
+                  )}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="morning"
+                  stroke="#14b8a6"
+                  strokeWidth={2}
+                  dot={{ r: 4, fill: '#14b8a6' }}
+                  activeDot={{ r: 6, fill: '#14b8a6' }}
+                  name="Morning"
+                />
+                <Line
+                  type="monotone"
+                  dataKey="evening"
+                  stroke="#0f766e"
+                  strokeWidth={2}
+                  dot={{ r: 4, fill: '#0f766e' }}
+                  activeDot={{ r: 6, fill: '#0f766e' }}
+                  name="Evening"
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        ) : (
+          <div className="h-[250px] flex items-center justify-center">
+            <div className="text-center">
+              <div className="text-[#94a3b8] mb-2">
+                <svg className="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+              </div>
+              <p className="text-[#475569] font-medium">No data available yet — fill out the daily form to start seeing readings</p>
+              <p className="text-[#94a3b8] text-sm mt-1">Add daily readings to view your sugar level trends</p>
+            </div>
+          </div>
+        )}
       </CardContent>
     </Card>
   );

@@ -1,15 +1,11 @@
 export interface Profile {
   id: string
   user_id: string
-  name: string
-  email: string
+  full_name: string
+  email: string // This will come from auth user, not stored in profiles table
   is_demo: boolean
   telegram_ids: string[]
-  secondary_contacts: {
-    name: string
-    email: string
-    relationship?: string
-  }[]
+  secondary_emails: string[] // Format: "email:relationship"
   created_at: string
   updated_at: string
 }
@@ -18,10 +14,10 @@ export interface DailyReading {
   id: string
   user_id: string
   date: string
-  morning_sugar: number
-  night_sugar: number
-  morning_dose: number
-  night_dose: number
+  sugar_morning: number
+  sugar_night: number
+  insulin_morning: number
+  insulin_night: number
   notes?: string
   created_at: string
   updated_at: string
@@ -30,15 +26,19 @@ export interface DailyReading {
 export interface Emergency {
   id: string
   user_id: string
-  date: string
-  time: string
+  event_date: string
+  event_time: string
   sugar_level: number
   symptoms: string
   actions_taken?: string
-  medications_given?: {
-    name: string
-    dose: number
-  }[]
   notes?: string
+  created_at: string
+}
+
+export interface EmergencyMedication {
+  id: string
+  event_id: string
+  med_name: string
+  dose: number
   created_at: string
 }

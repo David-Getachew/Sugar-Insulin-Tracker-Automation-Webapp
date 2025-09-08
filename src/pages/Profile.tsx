@@ -15,27 +15,22 @@ import { showSuccess, showError } from "@/utils/toast";
 
 // Profile form schema
 const profileFormSchema = z.object({
-  name: z.string().min(2, { message: "Name must be at least 2 characters" }),
-  email: z.string().email({ message: "Please enter a valid email address" }),
+  full_name: z.string().min(2, { message: "Name must be at least 2 characters" }),
+  // Email is read-only, so we make it optional for validation but still include it
+  email: z.string().optional(),
   telegramIds: z.array(
     z.object({
       handle: z.string().min(1, { message: "Telegram ID is required" }),
       label: z.string().optional(),
     })
   ).min(0),
-  secondaryContacts: z.array(
+  secondaryEmails: z.array(
     z.object({
       name: z.string().min(2, { message: "Name must be at least 2 characters" }),
       email: z.string().email({ message: "Please enter a valid email address" }),
       relationship: z.string().optional(),
     })
   ).min(0),
-}).refine(data => {
-  // At least one of telegramIds or secondaryContacts must have items
-  return data.telegramIds.length > 0 || data.secondaryContacts.length > 0;
-}, {
-  message: "At least one Telegram ID or secondary contact is required",
-  path: ["telegramIds"], // This will show the error on the telegramIds field
 });
 
 // Password form schema
@@ -52,18 +47,30 @@ type ProfileFormValues = z.infer<typeof profileFormSchema>;
 type PasswordFormValues = z.infer<typeof passwordFormSchema>;
 
 const Profile = () => {
-  const { profile, updateProfile } = useAuth();
+  const { profile, updateProfile, changePassword } = useAuth();
   const [isProfileLoading, setIsProfileLoading] = useState(false);
   const [isPasswordLoading, setIsPasswordLoading] = useState(false);
 
   const isDemo = profile?.is_demo || false;
 
+  // Helper function to parse secondary emails from "email:relationship" format
+  const parseSecondaryEmails = (secondaryEmails: string[] = []) => {
+    return secondaryEmails.map(item => {
+      const [email, relationship = ''] = item.split(':');
+      return {
+        name: email?.split('@')[0] || '', // Use email prefix as display name
+        email: email || '',
+        relationship: relationship || ''
+      };
+    });
+  };
+
   // Default values with empty arrays (no default values)
   const defaultValues: ProfileFormValues = {
-    name: profile?.name || "",
+    full_name: profile?.full_name || "",
     email: profile?.email || "",
     telegramIds: profile?.telegram_ids?.map(id => ({ handle: id, label: "" })) || [],
-    secondaryContacts: profile?.secondary_contacts || [],
+    secondaryEmails: parseSecondaryEmails(profile?.secondary_emails),
   };
 
   const profileForm = useForm<ProfileFormValues>({
@@ -75,10 +82,10 @@ const Profile = () => {
   useEffect(() => {
     if (profile) {
       profileForm.reset({
-        name: profile.name,
+        full_name: profile.full_name,
         email: profile.email,
         telegramIds: profile.telegram_ids?.map(id => ({ handle: id, label: "" })) || [],
-        secondaryContacts: profile.secondary_contacts || [],
+        secondaryEmails: parseSecondaryEmails(profile.secondary_emails),
       });
     }
   }, [profile, profileForm]);
@@ -102,9 +109,13 @@ const Profile = () => {
     
     try {
       await updateProfile({
-        name: values.name,
+        full_name: values.full_name,
         telegram_ids: values.telegramIds.map(item => item.handle).filter(Boolean),
-        secondary_contacts: values.secondaryContacts,
+        secondary_emails: values.secondaryEmails.filter(contact => 
+          contact.email && contact.email.trim() !== ''
+        ).map(contact => 
+          `${contact.email}:${contact.relationship || ''}` // Format as "email:relationship"
+        ),
       });
       
       showSuccess("Profile updated successfully");
@@ -125,11 +136,18 @@ const Profile = () => {
     setIsPasswordLoading(true);
     
     try {
-      // Note: Password changes would require additional Supabase auth flow
-      // For now, we'll show a message that this feature requires backend setup
-      showError("Password changes require additional backend configuration");
+      // Use the new changePassword function from AuthContext
+      const result = await changePassword(values.newPassword);
+      
+      if (result.success) {
+        showSuccess("Password updated successfully");
+        passwordForm.reset();
+      } else {
+        showError(result.error || "Failed to update password");
+      }
     } catch (error) {
       console.error("Error updating password:", error);
+      showError("An error occurred while updating password");
     } finally {
       setIsPasswordLoading(false);
     }
@@ -152,8 +170,8 @@ const Profile = () => {
 
   // Add a new secondary contact field
   const addSecondaryContact = () => {
-    const currentContacts = profileForm.getValues("secondaryContacts");
-    profileForm.setValue("secondaryContacts", [
+    const currentContacts = profileForm.getValues("secondaryEmails");
+    profileForm.setValue("secondaryEmails", [
       ...currentContacts,
       { name: "", email: "", relationship: "" }
     ]);
@@ -161,8 +179,8 @@ const Profile = () => {
 
   // Remove a secondary contact field
   const removeSecondaryContact = (index: number) => {
-    const currentContacts = profileForm.getValues("secondaryContacts");
-    profileForm.setValue("secondaryContacts", currentContacts.filter((_, i) => i !== index));
+    const currentContacts = profileForm.getValues("secondaryEmails");
+    profileForm.setValue("secondaryEmails", currentContacts.filter((_, i) => i !== index));
   };
 
   return (
@@ -216,7 +234,7 @@ const Profile = () => {
                     <div className="space-y-4">
                       <FormField
                         control={profileForm.control}
-                        name="name"
+                        name="full_name"
                         render={({ field }) => (
                           <FormItem>
                             <FormLabel className="text-[#475569]">Name</FormLabel>
@@ -338,7 +356,7 @@ const Profile = () => {
                             size="icon" 
                             onClick={() => removeTelegramId(index)}
                             className="mb-2 hover:bg-[#14b8a6] hover:text-[#0f766e]"
-                            disabled={profileForm.watch("telegramIds").length <= 1 && profileForm.watch("secondaryContacts").length === 0}
+                            disabled={profileForm.watch("telegramIds").length <= 1 && profileForm.watch("secondaryEmails").length === 0}
                           >
                             <Trash2 className="h-4 w-4 text-[#dc2626]" />
                           </Button>
@@ -361,23 +379,23 @@ const Profile = () => {
                         </Button>
                       </div>
                       
-                      {profileForm.watch("secondaryContacts").length === 0 && (
+                      {profileForm.watch("secondaryEmails").length === 0 && (
                         <div className="text-sm text-[#475569] italic">
                           No secondary contacts added. Add at least one contact or a Telegram ID to receive daily summaries.
                         </div>
                       )}
                       
-                      {profileForm.watch("secondaryContacts").map((_, index) => (
+                      {profileForm.watch("secondaryEmails").map((_, index) => (
                         <div key={index} className="space-y-4 p-4 border border-[#e2e8f0] rounded-md">
                           <div className="flex justify-between items-center">
-                            <div></div>
+                            <div className="text-sm font-medium text-[#0f766e]">Contact {index + 1}</div>
                             <Button 
                               type="button" 
                               variant="ghost" 
                               size="icon" 
                               onClick={() => removeSecondaryContact(index)}
                               className="hover:bg-[#14b8a6] hover:text-[#0f766e]"
-                              disabled={profileForm.watch("secondaryContacts").length <= 1 && profileForm.watch("telegramIds").length === 0}
+                              disabled={profileForm.watch("secondaryEmails").length <= 1 && profileForm.watch("telegramIds").length === 0}
                             >
                               <Trash2 className="h-4 w-4 text-[#dc2626]" />
                             </Button>
@@ -386,10 +404,10 @@ const Profile = () => {
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <FormField
                               control={profileForm.control}
-                              name={`secondaryContacts.${index}.name`}
+                              name={`secondaryEmails.${index}.name`}
                               render={({ field }) => (
                                 <FormItem>
-                                  <FormLabel className="text-[#475569]">Name</FormLabel>
+                                  <FormLabel className="text-[#475569]">Name (Display Only)</FormLabel>
                                   <FormControl>
                                     <Input 
                                       placeholder="Contact name" 
@@ -397,6 +415,9 @@ const Profile = () => {
                                       className="border-[#cbd5e1] focus:ring-[#0f766e] focus:border-[#0f766e]"
                                     />
                                   </FormControl>
+                                  <FormDescription className="text-[#475569]">
+                                    For identification only - not saved to database
+                                  </FormDescription>
                                   <FormMessage className="text-[#dc2626]" />
                                 </FormItem>
                               )}
@@ -404,7 +425,7 @@ const Profile = () => {
                             
                             <FormField
                               control={profileForm.control}
-                              name={`secondaryContacts.${index}.email`}
+                              name={`secondaryEmails.${index}.email`}
                               render={({ field }) => (
                                 <FormItem>
                                   <FormLabel className="text-[#475569]">Email</FormLabel>
@@ -422,7 +443,7 @@ const Profile = () => {
                             
                             <FormField
                               control={profileForm.control}
-                              name={`secondaryContacts.${index}.relationship`}
+                              name={`secondaryEmails.${index}.relationship`}
                               render={({ field }) => (
                                 <FormItem className="md:col-span-2">
                                   <FormLabel className="text-[#475569]">Relationship (Optional)</FormLabel>
@@ -434,7 +455,7 @@ const Profile = () => {
                                     />
                                   </FormControl>
                                   <FormDescription className="text-[#475569]">
-                                    Specify the relationship with this contact. These contacts will receive daily summaries of your readings.
+                                    Stored as "email:relationship" in database. These contacts will receive daily summaries.
                                   </FormDescription>
                                   <FormMessage className="text-[#dc2626]" />
                                 </FormItem>
@@ -442,7 +463,7 @@ const Profile = () => {
                             />
                           </div>
                         </div>
-                      ))}
+                      ))}}
                     </div>
                     
                     <Button type="submit" disabled={isProfileLoading || isDemo}>

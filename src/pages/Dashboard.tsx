@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import MainLayout from "@/components/layout/MainLayout";
 import SugarLevelChart from "@/components/charts/SugarLevelChart";
 import DoseChart from "@/components/charts/DoseChart";
@@ -11,19 +11,32 @@ const Dashboard = () => {
   const { profile } = useAuth();
   const { getDailyReadings, loading } = useDatabase();
   const [readings, setReadings] = useState<DailyReading[]>([]);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
 
   const isDemo = profile?.is_demo || false;
 
-  useEffect(() => {
-    const loadReadings = async () => {
+  // Memoize the data loading function to prevent unnecessary reruns
+  const loadReadings = useCallback(async () => {
+    try {
       const data = await getDailyReadings();
       setReadings(data);
-    };
-
-    loadReadings();
+    } catch (error) {
+      console.error('Failed to load readings:', error);
+      // Keep existing readings on error to prevent flickering
+    } finally {
+      setIsInitialLoad(false);
+    }
   }, [getDailyReadings]);
 
-  if (loading) {
+  // Load data only once on component mount
+  useEffect(() => {
+    if (isInitialLoad) {
+      loadReadings();
+    }
+  }, [loadReadings, isInitialLoad]);
+
+  // Show loading only on initial load, not on subsequent data fetches
+  if (loading && isInitialLoad) {
     return (
       <MainLayout>
         <div className="flex items-center justify-center h-64">
@@ -48,7 +61,7 @@ const Dashboard = () => {
               </div>
               <div className="ml-3">
                 <p className="text-sm text-yellow-800">
-                  <strong>Demo Account — Read-Only:</strong> Viewing sample data. Your actual data will appear here once you're logged in with a regular account.
+                  <strong>Demo Account — Read-Only:</strong> You can view your actual data and test forms, but changes won't be saved permanently.
                 </p>
               </div>
             </div>

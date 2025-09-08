@@ -21,6 +21,7 @@ interface ReadingsTableProps {
   data?: DailyReading[];
 }
 
+// TableReading interface for local data manipulation
 interface TableReading {
   id: string;
   date: Date;
@@ -29,35 +30,6 @@ interface TableReading {
   morningDose: number;
   nightDose: number;
 }
-
-// Mock data for readings
-const generateMockData = (days: number): TableReading[] => {
-  const data: TableReading[] = [];
-  const today = new Date();
-  
-  for (let i = days - 1; i >= 0; i--) {
-    const date = new Date(today);
-    date.setDate(today.getDate() - i);
-    
-    // Generate some abnormal readings for demonstration
-    const isAbnormal = Math.random() > 0.8; // 20% chance of abnormal reading
-    
-    data.push({
-      id: i.toString(),
-      date: new Date(date), // Create a new Date object to avoid reference issues
-      morningSugar: isAbnormal 
-        ? Math.random() > 0.5 ? Math.floor(Math.random() * 50) + 200 : Math.floor(Math.random() * 30) + 50
-        : Math.floor(Math.random() * 50) + 80,
-      nightSugar: isAbnormal 
-        ? Math.random() > 0.5 ? Math.floor(Math.random() * 100) + 200 : Math.floor(Math.random() * 40) + 50
-        : Math.floor(Math.random() * 60) + 90,
-      morningDose: Math.floor(Math.random() * 5) + 10, // Random between 10-15
-      nightDose: Math.floor(Math.random() * 5) + 8, // Random between 8-13
-    });
-  }
-  
-  return data;
-};
 
 const ReadingsTable = ({ data = [] }: ReadingsTableProps) => {
   const [date, setDate] = useState<Date | undefined>(undefined);
@@ -68,21 +40,21 @@ const ReadingsTable = ({ data = [] }: ReadingsTableProps) => {
   const [openDateRangePicker, setOpenDateRangePicker] = useState(false);
   const itemsPerPage = 7;
   
-  // Convert database data to table format or use mock data
+  // Convert database data to table format - no mock data
   const getTableData = (): TableReading[] => {
     if (data.length > 0) {
       return data.map(reading => ({
         id: reading.id,
         date: new Date(reading.date),
-        morningSugar: reading.morning_sugar,
-        nightSugar: reading.night_sugar,
-        morningDose: reading.morning_dose,
-        nightDose: reading.night_dose,
+        morningSugar: reading.sugar_morning,
+        nightSugar: reading.sugar_night,
+        morningDose: reading.insulin_morning,
+        nightDose: reading.insulin_night,
       }));
     }
     
-    // Generate 100 days of mock data for pagination demo when no real data
-    return generateMockData(100);
+    // Return empty array when no real data is available
+    return [];
   };
   
   const allData = getTableData();
@@ -317,7 +289,7 @@ const ReadingsTable = ({ data = [] }: ReadingsTableProps) => {
               ) : (
                 <TableRow>
                   <TableCell colSpan={5} className="h-24 text-center text-[#475569]">
-                    No readings found for the selected filters.
+                    No data available yet — fill out the daily form to start seeing readings.
                   </TableCell>
                 </TableRow>
               )}
