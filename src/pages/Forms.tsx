@@ -13,6 +13,8 @@ import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
 import { Calendar as CalendarIcon, PlusCircle, Trash2, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/contexts/AuthContext";
+import { useDatabase } from "@/hooks/useDatabase";
 import { showSuccess } from "@/utils/toast";
 
 // Form schemas
@@ -75,11 +77,15 @@ type ReadingFormValues = z.infer<typeof readingFormSchema>;
 type EmergencyFormValues = z.infer<typeof emergencyFormSchema>;
 
 const Forms = () => {
+  const { profile } = useAuth();
+  const { createDailyReading, createEmergency } = useDatabase();
   const [activeTab, setActiveTab] = useState<"reading" | "emergency">("reading");
   const [isReadingLoading, setIsReadingLoading] = useState(false);
   const [isEmergencyLoading, setIsEmergencyLoading] = useState(false);
   const [openDatePicker, setOpenDatePicker] = useState(false);
   const [openEmergencyDatePicker, setOpenEmergencyDatePicker] = useState(false);
+
+  const isDemo = profile?.is_demo || false;
 
   const readingForm = useForm<ReadingFormValues>({
     resolver: zodResolver(readingFormSchema),
@@ -105,14 +111,26 @@ const Forms = () => {
   });
 
   const onReadingSubmit = async (values: ReadingFormValues) => {
+    if (isDemo) {
+      showSuccess("Demo mode: Changes not saved to database");
+      return;
+    }
+
     setIsReadingLoading(true);
     
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const success = await createDailyReading({
+        date: format(values.date, 'yyyy-MM-dd'),
+        morning_sugar: values.morningSugar,
+        night_sugar: values.nightSugar,
+        morning_dose: values.morningDose,
+        night_dose: values.nightDose,
+        notes: values.notes || null,
+      });
       
-      console.log("Reading submitted with data:", values);
-      showSuccess("Reading submitted successfully");
-      readingForm.reset();
+      if (success) {
+        readingForm.reset();
+      }
     } catch (error) {
       console.error("Error submitting reading:", error);
     } finally {
@@ -124,18 +142,59 @@ const Forms = () => {
     setIsEmergencyLoading(true);
     
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const emergencyData = {
+        date: format(values.date, 'yyyy-MM-dd'),
+        time: values.time,
+        sugar_level: values.sugarLevel,
+        symptoms: values.symptoms,
+        actions_taken: values.actionsTaken || null,
+        medications_given: values.medicationsGiven?.length ? values.medicationsGiven : null,
+        notes: values.notes || null,
+      };
+
+      // Create emergency record
+      const emergency = await createEmergency(emergencyData);
       
-      console.log("Emergency form submitted with data:", values);
-      showSuccess("Emergency form submitted successfully");
-      emergencyForm.reset({
-        sugarLevel: undefined,
-        symptoms: "",
-        actionsTaken: "",
-        medicationsGiven: [], // Empty by default
-        notes: "",
-        time: "",
-      });
+      if (emergency && !isDemo) {
+        // Send to N8N webhook if available
+        const webhookUrl = import.meta.env.N8N_EMERGENCY_WEBHOOK_URL;
+        if (webhookUrl) {
+          try {
+            await fetch(webhookUrl, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                emergency,
+                user: {
+                  id: profile?.user_id,
+                  name: profile?.name,
+                  email: profile?.email,
+                },
+                timestamp: new Date().toISOString(),
+              }),
+            });
+            console.log('Emergency notification sent to N8N webhook');
+          } catch (webhookError) {
+            console.error('Failed to send emergency notification:', webhookError);
+          }
+        }
+      }
+      
+      if (emergency || isDemo) {
+        if (isDemo) {
+          showSuccess("Demo mode: Emergency logged (webhook not triggered)");
+        }
+        emergencyForm.reset({
+          sugarLevel: undefined,
+          symptoms: "",
+          actionsTaken: "",
+          medicationsGiven: [],
+          notes: "",
+          time: "",
+        });
+      }
     } catch (error) {
       console.error("Error submitting emergency form:", error);
     } finally {
@@ -159,6 +218,22 @@ const Forms = () => {
   return (
     <MainLayout>
       <div className="max-w-3xl mx-auto">
+        {isDemo && (
+          <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-md">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <p className="text-sm text-yellow-800">
+                  <strong>Demo Account — Read-Only:</strong> Form submissions will not be saved to the database.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
         <h1 className="text-2xl font-bold tracking-tight mb-6 text-[#0f172a]">Data Entry Forms</h1>
         
         <div className="flex space-x-4 mb-6">
@@ -342,8 +417,8 @@ const Forms = () => {
                     )}
                   />
                   
-                  <Button type="submit" disabled={isReadingLoading}>
-                    {isReadingLoading ? "Submitting..." : "Submit Reading"}
+                  <Button type="submit" disabled={isReadingLoading || isDemo}>
+                    {isDemo ? "Demo Mode - Read Only" : (isReadingLoading ? "Submitting..." : "Submit Reading")}
                   </Button>
                 </form>
               </Form>

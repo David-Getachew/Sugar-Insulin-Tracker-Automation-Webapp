@@ -15,10 +15,24 @@ import { format } from "date-fns";
 import { Calendar as CalendarIcon, AlertTriangle, ArrowUpDown, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { DateRange } from "react-day-picker";
+import { DailyReading } from "@/types/database";
+
+interface ReadingsTableProps {
+  data?: DailyReading[];
+}
+
+interface TableReading {
+  id: string;
+  date: Date;
+  morningSugar: number;
+  nightSugar: number;
+  morningDose: number;
+  nightDose: number;
+}
 
 // Mock data for readings
-const generateMockData = (days: number) => {
-  const data = [];
+const generateMockData = (days: number): TableReading[] => {
+  const data: TableReading[] = [];
   const today = new Date();
   
   for (let i = days - 1; i >= 0; i--) {
@@ -29,7 +43,7 @@ const generateMockData = (days: number) => {
     const isAbnormal = Math.random() > 0.8; // 20% chance of abnormal reading
     
     data.push({
-      id: i,
+      id: i.toString(),
       date: new Date(date), // Create a new Date object to avoid reference issues
       morningSugar: isAbnormal 
         ? Math.random() > 0.5 ? Math.floor(Math.random() * 50) + 200 : Math.floor(Math.random() * 30) + 50
@@ -45,7 +59,7 @@ const generateMockData = (days: number) => {
   return data;
 };
 
-const ReadingsTable = () => {
+const ReadingsTable = ({ data = [] }: ReadingsTableProps) => {
   const [date, setDate] = useState<Date | undefined>(undefined);
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const [currentPage, setCurrentPage] = useState(1);
@@ -54,8 +68,24 @@ const ReadingsTable = () => {
   const [openDateRangePicker, setOpenDateRangePicker] = useState(false);
   const itemsPerPage = 7;
   
-  // Generate 100 days of mock data for pagination demo
-  const allData = generateMockData(100);
+  // Convert database data to table format or use mock data
+  const getTableData = (): TableReading[] => {
+    if (data.length > 0) {
+      return data.map(reading => ({
+        id: reading.id,
+        date: new Date(reading.date),
+        morningSugar: reading.morning_sugar,
+        nightSugar: reading.night_sugar,
+        morningDose: reading.morning_dose,
+        nightDose: reading.night_dose,
+      }));
+    }
+    
+    // Generate 100 days of mock data for pagination demo when no real data
+    return generateMockData(100);
+  };
+  
+  const allData = getTableData();
   
   // Reset other filter when one is selected
   const handleDateSelect = (selectedDate: Date | undefined) => {

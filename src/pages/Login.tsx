@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { useAuth } from "@/contexts/AuthContext";
 import { showSuccess, showError } from "@/utils/toast";
 
 const formSchema = z.object({
@@ -18,30 +19,35 @@ type FormValues = z.infer<typeof formSchema>;
 
 const Login = () => {
   const navigate = useNavigate();
+  const { signIn, user, loading: authLoading } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      email: "",
-      password: "",
+      email: import.meta.env.DEMO_USER_EMAIL || "",
+      password: import.meta.env.DEMO_USER_PASSWORD || "",
     },
   });
+
+  // Redirect if already logged in
+  useEffect(() => {
+    if (user && !authLoading) {
+      navigate("/dashboard");
+    }
+  }, [user, authLoading, navigate]);
 
   const onSubmit = async (values: FormValues) => {
     setIsLoading(true);
     
     try {
-      // This is a mock login - will be replaced with actual authentication when we integrate Supabase
-      // For now, we'll just simulate a successful login with any credentials
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const result = await signIn(values.email, values.password);
       
-      // Mock credentials check (for demo purposes)
-      if (values.email === "demo@example.com" && values.password === "password") {
+      if (result.success) {
         showSuccess("Login successful");
         navigate("/dashboard");
       } else {
-        showError("Invalid credentials. Try demo@example.com / password");
+        showError(result.error || "Login failed. Please check your credentials.");
       }
     } catch (error) {
       showError("Login failed. Please try again.");
@@ -108,7 +114,7 @@ const Login = () => {
             Contact your administrator if you need access to the system.
           </p>
           <p className="text-xs text-center text-[#475569]">
-            For demo: use demo@example.com / password
+            For demo: use your demo account credentials from .env file
           </p>
         </CardFooter>
       </Card>

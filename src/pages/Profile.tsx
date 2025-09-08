@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -10,7 +10,8 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PlusCircle, Trash2, HelpCircle } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { showSuccess } from "@/utils/toast";
+import { useAuth } from "@/contexts/AuthContext";
+import { showSuccess, showError } from "@/utils/toast";
 
 // Profile form schema
 const profileFormSchema = z.object({
@@ -51,21 +52,36 @@ type ProfileFormValues = z.infer<typeof profileFormSchema>;
 type PasswordFormValues = z.infer<typeof passwordFormSchema>;
 
 const Profile = () => {
+  const { profile, updateProfile } = useAuth();
   const [isProfileLoading, setIsProfileLoading] = useState(false);
   const [isPasswordLoading, setIsPasswordLoading] = useState(false);
 
+  const isDemo = profile?.is_demo || false;
+
   // Default values with empty arrays (no default values)
   const defaultValues: ProfileFormValues = {
-    name: "John Doe",
-    email: "john.doe@example.com",
-    telegramIds: [],
-    secondaryContacts: [],
+    name: profile?.name || "",
+    email: profile?.email || "",
+    telegramIds: profile?.telegram_ids?.map(id => ({ handle: id, label: "" })) || [],
+    secondaryContacts: profile?.secondary_contacts || [],
   };
 
   const profileForm = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
     defaultValues,
   });
+
+  // Update form when profile data loads
+  useEffect(() => {
+    if (profile) {
+      profileForm.reset({
+        name: profile.name,
+        email: profile.email,
+        telegramIds: profile.telegram_ids?.map(id => ({ handle: id, label: "" })) || [],
+        secondaryContacts: profile.secondary_contacts || [],
+      });
+    }
+  }, [profile, profileForm]);
 
   const passwordForm = useForm<PasswordFormValues>({
     resolver: zodResolver(passwordFormSchema),
@@ -77,29 +93,41 @@ const Profile = () => {
   });
 
   const onProfileSubmit = async (values: ProfileFormValues) => {
+    if (isDemo) {
+      showSuccess("Demo mode: Profile changes not saved");
+      return;
+    }
+
     setIsProfileLoading(true);
     
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await updateProfile({
+        name: values.name,
+        telegram_ids: values.telegramIds.map(item => item.handle).filter(Boolean),
+        secondary_contacts: values.secondaryContacts,
+      });
       
-      console.log("Profile updated with data:", values);
       showSuccess("Profile updated successfully");
     } catch (error) {
       console.error("Error updating profile:", error);
+      showError("Failed to update profile");
     } finally {
       setIsProfileLoading(false);
     }
   };
 
   const onPasswordSubmit = async (values: PasswordFormValues) => {
+    if (isDemo) {
+      showSuccess("Demo mode: Password changes not allowed");
+      return;
+    }
+
     setIsPasswordLoading(true);
     
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      console.log("Password updated");
-      showSuccess("Password updated successfully");
-      passwordForm.reset();
+      // Note: Password changes would require additional Supabase auth flow
+      // For now, we'll show a message that this feature requires backend setup
+      showError("Password changes require additional backend configuration");
     } catch (error) {
       console.error("Error updating password:", error);
     } finally {
@@ -140,6 +168,22 @@ const Profile = () => {
   return (
     <MainLayout>
       <div className="max-w-3xl mx-auto">
+        {isDemo && (
+          <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-md">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <p className="text-sm text-yellow-800">
+                  <strong>Demo Account — Read-Only:</strong> Profile changes will not be saved to the database.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
         <h1 className="text-2xl font-bold tracking-tight mb-6 text-[#0f172a]">Profile Settings</h1>
         
         <Tabs defaultValue="profile" className="space-y-6">
@@ -401,8 +445,8 @@ const Profile = () => {
                       ))}
                     </div>
                     
-                    <Button type="submit" disabled={isProfileLoading}>
-                      {isProfileLoading ? "Saving..." : "Save Changes"}
+                    <Button type="submit" disabled={isProfileLoading || isDemo}>
+                      {isDemo ? "Demo Mode - Read Only" : (isProfileLoading ? "Saving..." : "Save Changes")}
                     </Button>
                   </form>
                 </Form>
@@ -481,8 +525,8 @@ const Profile = () => {
                       )}
                     />
                     
-                    <Button type="submit" disabled={isPasswordLoading}>
-                      {isPasswordLoading ? "Updating..." : "Update Password"}
+                    <Button type="submit" disabled={isPasswordLoading || isDemo}>
+                      {isDemo ? "Demo Mode - Read Only" : (isPasswordLoading ? "Updating..." : "Update Password")}
                     </Button>
                   </form>
                 </Form>

@@ -6,6 +6,7 @@ import {
   UserCircle, 
   LogOut
 } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 import { showSuccess } from "@/utils/toast";
 
 interface MainLayoutProps {
@@ -15,10 +16,16 @@ interface MainLayoutProps {
 const MainLayout = ({ children }: MainLayoutProps) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { signOut } = useAuth();
 
-  const handleLogout = () => {
-    showSuccess("Successfully logged out");
-    navigate("/login");
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      showSuccess("Successfully logged out");
+      navigate("/login");
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
   };
 
   const navItems = [

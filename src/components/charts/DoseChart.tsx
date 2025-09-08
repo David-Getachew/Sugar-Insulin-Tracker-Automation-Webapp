@@ -4,6 +4,28 @@ import { useState } from "react";
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip, Legend } from "recharts";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { DailyReading } from "@/types/database";
+
+interface ChartData {
+  date: string;
+  morning: number;
+  evening: number;
+}
+
+interface TooltipProps {
+  active?: boolean;
+  payload?: Array<{
+    color: string;
+    dataKey: string;
+    value: number;
+    name: string;
+  }>;
+  label?: string;
+}
+
+interface DoseChartProps {
+  data?: DailyReading[];
+}
 
 // Mock data for doses
 const generateMockData = (days: number) => {
@@ -24,19 +46,34 @@ const generateMockData = (days: number) => {
   return data;
 };
 
-const DoseChart = () => {
+const DoseChart = ({ data = [] }: DoseChartProps) => {
   const [timeRange, setTimeRange] = useState("30");
   
-  // Generate data based on selected time range
-  const data = generateMockData(parseInt(timeRange));
+  // Convert database data to chart format or use mock data
+  const getChartData = (): ChartData[] => {
+    if (data.length > 0) {
+      const days = parseInt(timeRange);
+      const filteredData = data.slice(0, days);
+      return filteredData.map(reading => ({
+        date: reading.date,
+        morning: reading.morning_dose,
+        evening: reading.night_dose,
+      }));
+    }
+    
+    // Generate mock data when no real data is available
+    return generateMockData(parseInt(timeRange));
+  };
+  
+  const chartData = getChartData();
   
   // Custom tooltip to color the labels
-  const CustomTooltip = ({ active, payload, label }: any) => {
+  const CustomTooltip = ({ active, payload, label }: TooltipProps) => {
     if (active && payload && payload.length) {
       return (
         <div className="bg-white p-4 border border-[#e2e8f0] rounded-md shadow-md">
           <p className="font-medium text-[#0f172a]">{label}</p>
-          {payload.map((entry: any, index: number) => (
+          {payload.map((entry, index: number) => (
             <p key={index} className="flex items-center">
               <span 
                 className="inline-block w-3 h-3 mr-2 rounded-full" 
@@ -81,7 +118,7 @@ const DoseChart = () => {
         <div className="h-[250px]">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart
-              data={data}
+              data={chartData}
               margin={{
                 top: 10,
                 right: 10,
