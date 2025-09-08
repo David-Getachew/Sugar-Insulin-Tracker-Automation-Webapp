@@ -85,7 +85,23 @@ All notable changes to the Sugar Insulin Tracker project will be documented in t
 - Advanced emergency alerting features
 - Enhanced analytics and reporting
 
----
+## [2.0.1] - 2025-09-08 - Dashboard and Profile Enhancements
+
+### 🐛 Bug Fixes
+- **Profile Save Button**: Fixed issue preventing profile updates by removing overly strict contact validation
+- **Password Change**: Implemented proper password change functionality using Supabase auth instead of placeholder message
+- **Dashboard Charts**: Fixed data sorting to display readings in proper chronological order (oldest left, newest right)
+- **Emergency Form**: Made "Actions Taken" field optional with clear labeling
+
+### 🎨 UI/UX Improvements
+- **Secondary Emails Display**: Reverted to previous expanded form layout for better user experience
+- **Dashboard Mock Data**: Removed all mock data and implemented clear "no data" messages across all components
+- **Consistent Messaging**: Unified empty state messages across dashboard components
+
+### 🧹 Codebase Cleanup
+- **Branding Removal**: Eliminated all "dyad-generated-app" references and branding
+- **Dependency Cleanup**: Removed unused dyad dependencies from package.json
+- **Component Removal**: Deleted the MadeWithDyad component and all references
 
 ## [1.0.0] - Previous Release
 - Initial frontend-only implementation

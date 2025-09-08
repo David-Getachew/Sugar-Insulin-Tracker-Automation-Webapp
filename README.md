@@ -1,4 +1,4 @@
-# Sugar Insulin Tracker - Supabase Integration
+# Sugar Insulin Tracker v2.0.0 - Supabase Integration
 
 A modern web application for tracking blood sugar levels and insulin dosage, now with full Supabase backend integration and demo read-only functionality.
 
