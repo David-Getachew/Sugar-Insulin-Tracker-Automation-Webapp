@@ -1,4 +1,4 @@
-# Sugar Insulin Tracker - Frontend Only
+# Sugar Insulin Tracker Web app + Summary and Alert Automation
 
 A modern web application for tracking blood sugar levels and insulin dosage, built with React, TypeScript, and Tailwind CSS.
 
@@ -92,4 +92,5 @@ Open a Pull Request
 
 **📄 License**
 This project is open source and available under the MIT License.
+
 
