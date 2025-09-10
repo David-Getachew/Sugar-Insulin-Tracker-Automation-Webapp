@@ -9,7 +9,7 @@ Stack: React 18 + TypeScript, Vite, Tailwind CSS, shadcn/ui, React Hook Form + Z
 1. Clone repo:
 
 ```
-git clone <repo-url>
+git clone https://github.com/David-Getachew/Sugar-Insulin-Tracker-Automation-Webapp
 cd <repo>
 ```
 
@@ -40,8 +40,6 @@ or
 pnpm install
 pnpm dev
 ```
-
-**Avoid using emojis in md files
 
 ## Security note
 - Do not commit service-role keys or other secrets.
@@ -278,5 +276,6 @@ This integration was developed on the `feature/supabase-integration-gemini` bran
 - Chart and table components - Real data support
 
 ## 📄 License
+
 
 This project is open source and available under the MIT License.
