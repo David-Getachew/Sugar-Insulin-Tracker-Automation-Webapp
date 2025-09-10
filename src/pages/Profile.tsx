@@ -6,7 +6,7 @@ import MainLayout from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PlusCircle, Trash2, HelpCircle, Edit, Save, X } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -370,6 +370,9 @@ const Profile = () => {
                                           className="border-[#cbd5e1] focus:ring-[#0f766e] focus:border-[#0f766e]"
                                         />
                                       </FormControl>
+                                      <FormDescription className="text-[#475569] text-xs">
+                                        Describe your relationship with this contact
+                                      </FormDescription>
                                       <FormMessage className="text-[#dc2626]" />
                                     </FormItem>
                                   )}
@@ -389,6 +392,9 @@ const Profile = () => {
                                           className="border-[#cbd5e1] focus:ring-[#0f766e] focus:border-[#0f766e]"
                                         />
                                       </FormControl>
+                                      <FormDescription className="text-[#475569] text-xs">
+                                        Unique identifier for this Telegram contact
+                                      </FormDescription>
                                       <FormMessage className="text-[#dc2626]" />
                                     </FormItem>
                                   )}
@@ -482,6 +488,9 @@ const Profile = () => {
                                         className="border-[#cbd5e1] focus:ring-[#0f766e] focus:border-[#0f766e]"
                                       />
                                     </FormControl>
+                                    <FormDescription className="text-[#475569] text-xs">
+                                      Full name of the contact person
+                                    </FormDescription>
                                     <FormMessage className="text-[#dc2626]" />
                                   </FormItem>
                                 )}
@@ -501,6 +510,9 @@ const Profile = () => {
                                             className="border-[#cbd5e1] focus:ring-[#0f766e] focus:border-[#0f766e] text-sm"
                                           />
                                         </FormControl>
+                                        <FormDescription className="text-[#475569] text-xs">
+                                          Relationship to you (e.g. spouse, child, parent)
+                                        </FormDescription>
                                         <FormMessage className="text-[#dc2626]" />
                                       </FormItem>
                                     )}
@@ -520,6 +532,9 @@ const Profile = () => {
                                             className="border-[#cbd5e1] focus:ring-[#0f766e] focus:border-[#0f766e]"
                                           />
                                         </FormControl>
+                                        <FormDescription className="text-[#475569] text-xs">
+                                          Valid email address for this contact
+                                        </FormDescription>
                                         <FormMessage className="text-[#dc2626]" />
                                       </FormItem>
                                     )}
