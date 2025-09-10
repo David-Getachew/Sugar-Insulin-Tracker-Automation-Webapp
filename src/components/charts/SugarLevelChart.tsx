@@ -153,10 +153,10 @@ const SugarLevelChart = ({ data = [] }: SugarLevelChartProps) => {
                 <Line
                   type="monotone"
                   dataKey="evening"
-                  stroke="#0f766e"
+                  stroke="#FF8C00"
                   strokeWidth={2}
-                  dot={{ r: 4, fill: '#0f766e' }}
-                  activeDot={{ r: 6, fill: '#0f766e' }}
+                  dot={{ r: 4, fill: '#FF8C00' }}
+                  activeDot={{ r: 6, fill: '#FF8C00' }}
                   name="Evening"
                 />
               </LineChart>

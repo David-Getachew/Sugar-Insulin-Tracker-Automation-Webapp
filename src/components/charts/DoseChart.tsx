@@ -149,7 +149,7 @@ const DoseChart = ({ data = [] }: DoseChartProps) => {
                 <Bar
                   dataKey="evening"
                   name="evening"
-                  fill="#0f766e"
+                  fill="#FF8C00"
                   radius={[4, 4, 0, 0]}
                 />
               </BarChart>

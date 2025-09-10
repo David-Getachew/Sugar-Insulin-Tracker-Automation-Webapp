@@ -11,11 +11,21 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
-import { Calendar as CalendarIcon, PlusCircle, Trash2, Clock } from "lucide-react";
+import { Calendar as CalendarIcon, PlusCircle, Trash2, Clock, AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { useDatabase } from "@/hooks/useDatabase";
 import { showSuccess, showError } from "@/utils/toast";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 // Form schemas
 const readingFormSchema = z.object({
@@ -71,19 +81,22 @@ type EmergencyFormValues = z.infer<typeof emergencyFormSchema>;
 
 const Forms = () => {
   const { profile } = useAuth();
-  const { createDailyReading, createEmergency, saveMedications } = useDatabase();
+  const { createDailyReading, createEmergency, saveMedications, getDailyReadings } = useDatabase();
   const [activeTab, setActiveTab] = useState<"reading" | "emergency">("reading");
   const [isReadingLoading, setIsReadingLoading] = useState(false);
   const [isEmergencyLoading, setIsEmergencyLoading] = useState(false);
   const [openDatePicker, setOpenDatePicker] = useState(false);
   const [openEmergencyDatePicker, setOpenEmergencyDatePicker] = useState(false);
+  const [showDuplicateDialog, setShowDuplicateDialog] = useState(false);
+  const [pendingReadingData, setPendingReadingData] = useState<ReadingFormValues | null>(null);
+  const [existingDates, setExistingDates] = useState<string[]>([]);
 
   const isDemo = profile?.is_demo || false;
 
   const readingForm = useForm<ReadingFormValues>({
     resolver: zodResolver(readingFormSchema),
     defaultValues: {
-      morningSugar: "" as any, // Use empty string instead of undefined
+      morningSugar: "" as any,
       nightSugar: "" as any,
       morningDose: "" as any,
       nightDose: "" as any,
@@ -102,6 +115,37 @@ const Forms = () => {
       time: "",
     },
   });
+
+  // Fetch existing dates for duplicate check
+  useEffect(() => {
+    const fetchExistingDates = async () => {
+      try {
+        const readings = await getDailyReadings();
+        const dates = readings.map(reading => reading.date);
+        setExistingDates(dates);
+      } catch (error) {
+        console.error("Error fetching existing dates:", error);
+      }
+    };
+
+    if (!isDemo) {
+      fetchExistingDates();
+    }
+  }, [getDailyReadings, isDemo]);
+
+  const checkForDuplicateDate = (date: Date) => {
+    const formattedDate = format(date, 'yyyy-MM-dd');
+    return existingDates.includes(formattedDate);
+  };
+
+  const handleReadingSubmit = (values: ReadingFormValues) => {
+    if (checkForDuplicateDate(values.date)) {
+      setPendingReadingData(values);
+      setShowDuplicateDialog(true);
+    } else {
+      onReadingSubmit(values);
+    }
+  };
 
   const onReadingSubmit = async (values: ReadingFormValues) => {
     if (isDemo) {
@@ -133,6 +177,8 @@ const Forms = () => {
       const success = await createDailyReading(readingData);
       
       if (success) {
+        // Update existing dates after successful submission
+        setExistingDates(prev => [...prev, format(values.date, 'yyyy-MM-dd')]);
         readingForm.reset();
       } else {
         showError("Failed to save reading. Please check your connection and try again.");
@@ -142,6 +188,8 @@ const Forms = () => {
       showError("An error occurred while saving. Please try again.");
     } finally {
       setIsReadingLoading(false);
+      setShowDuplicateDialog(false);
+      setPendingReadingData(null);
     }
   };
 
@@ -189,7 +237,7 @@ const Forms = () => {
                 emergency,
                 user: {
                   id: profile?.user_id,
-                  name: profile?.name,
+                  name: profile?.full_name,
                   email: profile?.email,
                 },
                 timestamp: new Date().toISOString(),
@@ -271,6 +319,7 @@ const Forms = () => {
           <Button
             variant={activeTab === "emergency" ? "default" : "outline"}
             onClick={() => setActiveTab("emergency")}
+            disabled={isDemo}
             className={activeTab === "emergency" ? "bg-[#0f766e] text-white" : "border-[#cbd5e1] text-[#475569]"}
           >
             Emergency Form
@@ -287,7 +336,7 @@ const Forms = () => {
             </CardHeader>
             <CardContent>
               <Form {...readingForm}>
-                <form onSubmit={readingForm.handleSubmit(onReadingSubmit)} className="space-y-6">
+                <form onSubmit={readingForm.handleSubmit(handleReadingSubmit)} className="space-y-6">
                   <FormField
                     control={readingForm.control}
                     name="date"
@@ -684,8 +733,8 @@ const Forms = () => {
                     )}
                   />
                   
-                  <Button type="submit" disabled={isEmergencyLoading}>
-                    {isEmergencyLoading ? "Submitting..." : "Submit Emergency Report"}
+                  <Button type="submit" disabled={isEmergencyLoading || isDemo}>
+                    {isDemo ? "Demo Mode - Read Only" : (isEmergencyLoading ? "Submitting..." : "Submit Emergency Report")}
                   </Button>
                 </form>
               </Form>
@@ -693,6 +742,30 @@ const Forms = () => {
           </Card>
         )}
       </div>
+
+      {/* Duplicate Date Warning Dialog */}
+      <AlertDialog open={showDuplicateDialog} onOpenChange={setShowDuplicateDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center">
+              <AlertTriangle className="h-5 w-5 text-yellow-600 mr-2" />
+              Duplicate Date Detected
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              This date already has a form. Continuing will overwrite the existing entry.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setShowDuplicateDialog(false)}>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={() => pendingReadingData && onReadingSubmit(pendingReadingData)}
+              className="bg-[#0f766e] hover:bg-[#0d5c58]"
+            >
+              Continue
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </MainLayout>
   );
 };

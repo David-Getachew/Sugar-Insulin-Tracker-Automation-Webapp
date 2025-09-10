@@ -68,7 +68,7 @@ const InsulinDoseChart = ({ data = [] }: InsulinDoseChartProps) => {
                 />
                 <Legend />
                 <Bar dataKey="morningDose" name="Morning Dose" fill="#0f766e" />
-                <Bar dataKey="nightDose" name="Night Dose" fill="#f59e0b" />
+                <Bar dataKey="nightDose" name="Night Dose" fill="#FF8C00" />
               </BarChart>
             </ResponsiveContainer>
           </div>

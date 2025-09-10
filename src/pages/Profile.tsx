@@ -286,8 +286,14 @@ const Profile = () => {
                                 side="right"
                               >
                                 <p className="text-[#475569]">
-                                  To get your Telegram ID, message the @userinfobot on Telegram. 
-                                  The bot will reply with your ID which you can use here.
+                                  To get your Telegram ID, message <a 
+                                    href="https://t.me/userinfobot" 
+                                    target="_blank" 
+                                    rel="noopener noreferrer"
+                                    className="text-[#0f766e] hover:underline font-medium"
+                                  >
+                                    @userinfobot
+                                  </a>. The bot will reply with your ID which you can use here.
                                   These contacts will receive daily summaries of your readings.
                                 </p>
                               </TooltipContent>
@@ -312,50 +318,24 @@ const Profile = () => {
                         </div>
                       )}
                       
-                      {profileForm.watch("telegramIds").map((_, index) => (
-                        <div key={index} className="flex items-end gap-4">
-                          <FormField
-                            control={profileForm.control}
-                            name={`telegramIds.${index}.handle`}
-                            render={({ field }) => (
-                              <FormItem className="flex-1">
-                                <FormLabel className="text-[#475569]">ID</FormLabel>
-                                <FormControl>
-                                  <Input 
-                                    placeholder="Telegram ID" 
-                                    {...field} 
-                                    className="border-[#cbd5e1] focus:ring-[#0f766e] focus:border-[#0f766e]"
-                                  />
-                                </FormControl>
-                                <FormMessage className="text-[#dc2626]" />
-                              </FormItem>
+                      {profileForm.watch("telegramIds").map((item, index) => (
+                        <div key={index} className="flex items-center gap-2 p-3 border border-[#e2e8f0] rounded-md">
+                          <div className="flex-1 min-w-0">
+                            <div className="font-medium text-[#0f172a] truncate">
+                              {item.handle}
+                            </div>
+                            {item.label && (
+                              <div className="text-sm text-[#475569] truncate">
+                                {item.label}
+                              </div>
                             )}
-                          />
-                          
-                          <FormField
-                            control={profileForm.control}
-                            name={`telegramIds.${index}.label`}
-                            render={({ field }) => (
-                              <FormItem className="flex-1">
-                                <FormLabel className="text-[#475569]">Label (Optional)</FormLabel>
-                                <FormControl>
-                                  <Input 
-                                    placeholder="e.g. Personal, Work" 
-                                    {...field} 
-                                    className="border-[#cbd5e1] focus:ring-[#0f766e] focus:border-[#0f766e]"
-                                  />
-                                </FormControl>
-                                <FormMessage className="text-[#dc2626]" />
-                              </FormItem>
-                            )}
-                          />
-                          
+                          </div>
                           <Button 
                             type="button" 
                             variant="ghost" 
                             size="icon" 
                             onClick={() => removeTelegramId(index)}
-                            className="mb-2 hover:bg-[#14b8a6] hover:text-[#0f766e]"
+                            className="hover:bg-[#14b8a6] hover:text-[#0f766e]"
                             disabled={profileForm.watch("telegramIds").length <= 1 && profileForm.watch("secondaryEmails").length === 0}
                           >
                             <Trash2 className="h-4 w-4 text-[#dc2626]" />
@@ -385,85 +365,33 @@ const Profile = () => {
                         </div>
                       )}
                       
-                      {profileForm.watch("secondaryEmails").map((_, index) => (
-                        <div key={index} className="space-y-4 p-4 border border-[#e2e8f0] rounded-md">
-                          <div className="flex justify-between items-center">
-                            <div className="text-sm font-medium text-[#0f766e]">Contact {index + 1}</div>
-                            <Button 
-                              type="button" 
-                              variant="ghost" 
-                              size="icon" 
-                              onClick={() => removeSecondaryContact(index)}
-                              className="hover:bg-[#14b8a6] hover:text-[#0f766e]"
-                              disabled={profileForm.watch("secondaryEmails").length <= 1 && profileForm.watch("telegramIds").length === 0}
-                            >
-                              <Trash2 className="h-4 w-4 text-[#dc2626]" />
-                            </Button>
+                      {profileForm.watch("secondaryEmails").map((contact, index) => (
+                        <div key={index} className="flex items-center gap-2 p-3 border border-[#e2e8f0] rounded-md">
+                          <div className="flex-1 min-w-0">
+                            <div className="font-medium text-[#0f172a] truncate">
+                              {contact.name}
+                            </div>
+                            <div className="text-sm text-[#475569] truncate">
+                              {contact.email}
+                            </div>
+                            {contact.relationship && (
+                              <div className="text-xs text-[#64748b] truncate">
+                                {contact.relationship}
+                              </div>
+                            )}
                           </div>
-                          
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <FormField
-                              control={profileForm.control}
-                              name={`secondaryEmails.${index}.name`}
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel className="text-[#475569]">Name (Display Only)</FormLabel>
-                                  <FormControl>
-                                    <Input 
-                                      placeholder="Contact name" 
-                                      {...field} 
-                                      className="border-[#cbd5e1] focus:ring-[#0f766e] focus:border-[#0f766e]"
-                                    />
-                                  </FormControl>
-                                  <FormDescription className="text-[#475569]">
-                                    For identification only - not saved to database
-                                  </FormDescription>
-                                  <FormMessage className="text-[#dc2626]" />
-                                </FormItem>
-                              )}
-                            />
-                            
-                            <FormField
-                              control={profileForm.control}
-                              name={`secondaryEmails.${index}.email`}
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel className="text-[#475569]">Email</FormLabel>
-                                  <FormControl>
-                                    <Input 
-                                      placeholder="Contact email" 
-                                      {...field} 
-                                      className="border-[#cbd5e1] focus:ring-[#0f766e] focus:border-[#0f766e]"
-                                    />
-                                  </FormControl>
-                                  <FormMessage className="text-[#dc2626]" />
-                                </FormItem>
-                              )}
-                            />
-                            
-                            <FormField
-                              control={profileForm.control}
-                              name={`secondaryEmails.${index}.relationship`}
-                              render={({ field }) => (
-                                <FormItem className="md:col-span-2">
-                                  <FormLabel className="text-[#475569]">Relationship (Optional)</FormLabel>
-                                  <FormControl>
-                                    <Input 
-                                      placeholder="e.g. Doctor, Family member" 
-                                      {...field} 
-                                      className="border-[#cbd5e1] focus:ring-[#0f766e] focus:border-[#0f766e]"
-                                    />
-                                  </FormControl>
-                                  <FormDescription className="text-[#475569]">
-                                    Stored as "email:relationship" in database. These contacts will receive daily summaries.
-                                  </FormDescription>
-                                  <FormMessage className="text-[#dc2626]" />
-                                </FormItem>
-                              )}
-                            />
-                          </div>
+                          <Button 
+                            type="button" 
+                            variant="ghost" 
+                            size="icon" 
+                            onClick={() => removeSecondaryContact(index)}
+                            className="hover:bg-[#14b8a6] hover:text-[#0f766e]"
+                            disabled={profileForm.watch("secondaryEmails").length <= 1 && profileForm.watch("telegramIds").length === 0}
+                          >
+                            <Trash2 className="h-4 w-4 text-[#dc2626]" />
+                          </Button>
                         </div>
-                      ))}}
+                      ))}
                     </div>
                     
                     <Button type="submit" disabled={isProfileLoading || isDemo}>
