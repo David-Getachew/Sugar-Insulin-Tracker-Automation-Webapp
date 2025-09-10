@@ -26,14 +26,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
+import { MultiSelect } from "@/components/ui/multi-select";
 
 // Form schemas
 const readingFormSchema = z.object({
@@ -650,50 +643,19 @@ const Forms = () => {
                     <FormField
                       control={emergencyForm.control}
                       name="symptoms"
-                      render={() => (
+                      render={({ field }) => (
                         <FormItem>
-                          <div className="mb-3">
-                            <FormLabel className="text-[#475569]">
-                              Symptoms <span className="text-[#dc2626]">*</span>
-                            </FormLabel>
-                            <FormDescription className="text-[#475569]">
-                              Select all that apply
-                            </FormDescription>
-                          </div>
-                          <div className="space-y-2">
-                            {commonSymptoms.map((symptom) => (
-                              <FormField
-                                key={symptom}
-                                control={emergencyForm.control}
-                                name="symptoms"
-                                render={({ field }) => {
-                                  return (
-                                    <div className="flex items-center space-x-2">
-                                      <Checkbox
-                                        id={`symptom-${symptom}`}
-                                        checked={field.value?.includes(symptom)}
-                                        onCheckedChange={(checked) => {
-                                          return checked
-                                            ? field.onChange([...(field.value || []), symptom])
-                                            : field.onChange(
-                                                field.value?.filter(
-                                                  (value) => value !== symptom
-                                                )
-                                              );
-                                        }}
-                                      />
-                                      <label
-                                        htmlFor={`symptom-${symptom}`}
-                                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                                      >
-                                        {symptom}
-                                      </label>
-                                    </div>
-                                  );
-                                }}
-                              />
-                            ))}
-                          </div>
+                          <FormLabel className="text-[#475569]">
+                            Symptoms <span className="text-[#dc2626]">*</span>
+                          </FormLabel>
+                          <FormControl>
+                            <MultiSelect
+                              options={commonSymptoms}
+                              selected={field.value}
+                              onChange={field.onChange}
+                              placeholder="Select symptoms..."
+                            />
+                          </FormControl>
                           <FormMessage className="text-[#dc2626]" />
                         </FormItem>
                       )}
@@ -722,48 +684,17 @@ const Forms = () => {
                     <FormField
                       control={emergencyForm.control}
                       name="actionsTaken"
-                      render={() => (
+                      render={({ field }) => (
                         <FormItem>
-                          <div className="mb-3">
-                            <FormLabel className="text-[#475569]">Actions Taken</FormLabel>
-                            <FormDescription className="text-[#475569]">
-                              Select all that apply
-                            </FormDescription>
-                          </div>
-                          <div className="space-y-2">
-                            {commonActions.map((action) => (
-                              <FormField
-                                key={action}
-                                control={emergencyForm.control}
-                                name="actionsTaken"
-                                render={({ field }) => {
-                                  return (
-                                    <div className="flex items-center space-x-2">
-                                      <Checkbox
-                                        id={`action-${action}`}
-                                        checked={field.value?.includes(action)}
-                                        onCheckedChange={(checked) => {
-                                          return checked
-                                            ? field.onChange([...(field.value || []), action])
-                                            : field.onChange(
-                                                field.value?.filter(
-                                                  (value) => value !== action
-                                                )
-                                              );
-                                        }}
-                                      />
-                                      <label
-                                        htmlFor={`action-${action}`}
-                                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                                      >
-                                        {action}
-                                      </label>
-                                    </div>
-                                  );
-                                }}
-                              />
-                            ))}
-                          </div>
+                          <FormLabel className="text-[#475569]">Actions Taken</FormLabel>
+                          <FormControl>
+                            <MultiSelect
+                              options={commonActions}
+                              selected={field.value || []}
+                              onChange={(selected) => field.onChange(selected)}
+                              placeholder="Select actions taken..."
+                            />
+                          </FormControl>
                           <FormMessage className="text-[#dc2626]" />
                         </FormItem>
                       )}
