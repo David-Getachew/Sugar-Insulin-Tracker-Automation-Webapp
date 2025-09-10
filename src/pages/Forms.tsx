@@ -26,6 +26,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 
 // Form schemas
 const readingFormSchema = z.object({
@@ -62,8 +70,10 @@ const emergencyFormSchema = z.object({
     (val) => (val === "" || val === undefined ? undefined : Number(val)),
     z.number().min(1, "Sugar level is required").max(500, "Value too high")
   ),
-  symptoms: z.string().min(1, "Please describe the symptoms"),
-  actionsTaken: z.string().optional(),
+  symptoms: z.array(z.string()).min(1, "Please select at least one symptom"),
+  additionalSymptoms: z.string().optional(),
+  actionsTaken: z.array(z.string()).optional(),
+  additionalActions: z.string().optional(),
   medicationsGiven: z.array(
     z.object({
       name: z.string().min(1, "Medication name is required"),
@@ -78,6 +88,26 @@ const emergencyFormSchema = z.object({
 
 type ReadingFormValues = z.infer<typeof readingFormSchema>;
 type EmergencyFormValues = z.infer<typeof emergencyFormSchema>;
+
+const commonSymptoms = [
+  "Hypoglycemia (low blood sugar)",
+  "Hyperglycemia (high blood sugar)",
+  "Dizziness",
+  "Sweating",
+  "Confusion",
+  "Fatigue",
+  "Nausea",
+  "Headache"
+];
+
+const commonActions = [
+  "Took insulin",
+  "Ate sugar/snack",
+  "Drank water",
+  "Rested",
+  "Contacted doctor",
+  "Monitored blood sugar"
+];
 
 const Forms = () => {
   const { profile } = useAuth();
@@ -108,8 +138,10 @@ const Forms = () => {
     resolver: zodResolver(emergencyFormSchema),
     defaultValues: {
       sugarLevel: "" as any,
-      symptoms: "",
-      actionsTaken: "",
+      symptoms: [],
+      additionalSymptoms: "",
+      actionsTaken: [],
+      additionalActions: "",
       medicationsGiven: [],
       notes: "",
       time: "",
@@ -194,8 +226,13 @@ const Forms = () => {
   };
 
   const onEmergencySubmit = async (values: EmergencyFormValues) => {
+    if (isDemo) {
+      showSuccess("Demo mode: Emergency report not submitted");
+      return;
+    }
+
     // Check if user is authenticated
-    if (!profile?.user_id && !isDemo) {
+    if (!profile?.user_id) {
       showError("Please log in to save emergency reports");
       return;
     }
@@ -203,12 +240,24 @@ const Forms = () => {
     setIsEmergencyLoading(true);
     
     try {
+      // Combine selected symptoms with additional symptoms
+      const allSymptoms = [
+        ...values.symptoms,
+        ...(values.additionalSymptoms ? [values.additionalSymptoms] : [])
+      ].filter(Boolean);
+
+      // Combine selected actions with additional actions
+      const allActions = [
+        ...(values.actionsTaken || []),
+        ...(values.additionalActions ? [values.additionalActions] : [])
+      ].filter(Boolean);
+
       const emergencyData = {
         event_date: format(values.date, 'yyyy-MM-dd'),
         event_time: values.time,
         sugar_level: values.sugarLevel,
-        symptoms: values.symptoms,
-        actions_taken: values.actionsTaken || null,
+        symptoms: allSymptoms.join(', '),
+        actions_taken: allActions.length > 0 ? allActions.join(', ') : null,
         notes: values.notes || null,
       };
 
@@ -223,7 +272,7 @@ const Forms = () => {
         }
       }
       
-      if (emergency && !isDemo) {
+      if (emergency) {
         // Send to N8N webhook if available
         const webhookUrl = import.meta.env.N8N_EMERGENCY_WEBHOOK_URL;
         if (webhookUrl) {
@@ -250,18 +299,18 @@ const Forms = () => {
         }
       }
       
-      if (emergency || isDemo) {
-        if (isDemo) {
-          showSuccess("Demo mode: Emergency logged (webhook not triggered)");
-        }
+      if (emergency) {
         emergencyForm.reset({
           sugarLevel: "" as any,
-          symptoms: "",
-          actionsTaken: "",
+          symptoms: [],
+          additionalSymptoms: "",
+          actionsTaken: [],
+          additionalActions: "",
           medicationsGiven: [],
           notes: "",
           time: "",
         });
+        showSuccess("Emergency report submitted successfully");
       } else {
         showError("Failed to save emergency report. Please check your connection and try again.");
       }
@@ -319,7 +368,6 @@ const Forms = () => {
           <Button
             variant={activeTab === "emergency" ? "default" : "outline"}
             onClick={() => setActiveTab("emergency")}
-            disabled={isDemo}
             className={activeTab === "emergency" ? "bg-[#0f766e] text-white" : "border-[#cbd5e1] text-[#475569]"}
           >
             Emergency Form
@@ -598,43 +646,147 @@ const Forms = () => {
                     )}
                   />
                   
-                  <FormField
-                    control={emergencyForm.control}
-                    name="symptoms"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-[#475569]">
-                          Symptoms <span className="text-[#dc2626]">*</span>
-                        </FormLabel>
-                        <FormControl>
-                          <Textarea
-                            placeholder="Describe the symptoms experienced..."
-                            className="resize-none border-[#cbd5e1] focus:ring-[#0f766e] focus:border-[#0f766e]"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage className="text-[#dc2626]" />
-                      </FormItem>
-                    )}
-                  />
+                  <div className="space-y-4">
+                    <FormField
+                      control={emergencyForm.control}
+                      name="symptoms"
+                      render={() => (
+                        <FormItem>
+                          <div className="mb-3">
+                            <FormLabel className="text-[#475569]">
+                              Symptoms <span className="text-[#dc2626]">*</span>
+                            </FormLabel>
+                            <FormDescription className="text-[#475569]">
+                              Select all that apply
+                            </FormDescription>
+                          </div>
+                          <div className="space-y-2">
+                            {commonSymptoms.map((symptom) => (
+                              <FormField
+                                key={symptom}
+                                control={emergencyForm.control}
+                                name="symptoms"
+                                render={({ field }) => {
+                                  return (
+                                    <div className="flex items-center space-x-2">
+                                      <Checkbox
+                                        id={`symptom-${symptom}`}
+                                        checked={field.value?.includes(symptom)}
+                                        onCheckedChange={(checked) => {
+                                          return checked
+                                            ? field.onChange([...(field.value || []), symptom])
+                                            : field.onChange(
+                                                field.value?.filter(
+                                                  (value) => value !== symptom
+                                                )
+                                              );
+                                        }}
+                                      />
+                                      <label
+                                        htmlFor={`symptom-${symptom}`}
+                                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                                      >
+                                        {symptom}
+                                      </label>
+                                    </div>
+                                  );
+                                }}
+                              />
+                            ))}
+                          </div>
+                          <FormMessage className="text-[#dc2626]" />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={emergencyForm.control}
+                      name="additionalSymptoms"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-[#475569]">Additional Symptoms</FormLabel>
+                          <FormControl>
+                            <Input 
+                              placeholder="Enter any additional symptoms..." 
+                              {...field} 
+                              className="border-[#cbd5e1] focus:ring-[#0f766e] focus:border-[#0f766e]"
+                            />
+                          </FormControl>
+                          <FormMessage className="text-[#dc2626]" />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
                   
-                  <FormField
-                    control={emergencyForm.control}
-                    name="actionsTaken"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-[#475569]">Actions Taken (Optional)</FormLabel>
-                        <FormControl>
-                          <Textarea
-                            placeholder="Describe the actions taken to address the situation..."
-                            className="resize-none border-[#cbd5e1] focus:ring-[#0f766e] focus:border-[#0f766e]"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage className="text-[#dc2626]" />
-                      </FormItem>
-                    )}
-                  />
+                  <div className="space-y-4">
+                    <FormField
+                      control={emergencyForm.control}
+                      name="actionsTaken"
+                      render={() => (
+                        <FormItem>
+                          <div className="mb-3">
+                            <FormLabel className="text-[#475569]">Actions Taken</FormLabel>
+                            <FormDescription className="text-[#475569]">
+                              Select all that apply
+                            </FormDescription>
+                          </div>
+                          <div className="space-y-2">
+                            {commonActions.map((action) => (
+                              <FormField
+                                key={action}
+                                control={emergencyForm.control}
+                                name="actionsTaken"
+                                render={({ field }) => {
+                                  return (
+                                    <div className="flex items-center space-x-2">
+                                      <Checkbox
+                                        id={`action-${action}`}
+                                        checked={field.value?.includes(action)}
+                                        onCheckedChange={(checked) => {
+                                          return checked
+                                            ? field.onChange([...(field.value || []), action])
+                                            : field.onChange(
+                                                field.value?.filter(
+                                                  (value) => value !== action
+                                                )
+                                              );
+                                        }}
+                                      />
+                                      <label
+                                        htmlFor={`action-${action}`}
+                                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                                      >
+                                        {action}
+                                      </label>
+                                    </div>
+                                  );
+                                }}
+                              />
+                            ))}
+                          </div>
+                          <FormMessage className="text-[#dc2626]" />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={emergencyForm.control}
+                      name="additionalActions"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-[#475569]">Additional Actions</FormLabel>
+                          <FormControl>
+                            <Input 
+                              placeholder="Enter any additional actions taken..." 
+                              {...field} 
+                              className="border-[#cbd5e1] focus:ring-[#0f766e] focus:border-[#0f766e]"
+                            />
+                          </FormControl>
+                          <FormMessage className="text-[#dc2626]" />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
                   
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
