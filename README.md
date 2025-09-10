@@ -1,3 +1,63 @@
+# Insulin Tracker — v2.0.0 (Integrated Release)
+
+## Overview
+This release is the integrated frontend for the Insulin Tracker web app.
+
+Stack: React 18 + TypeScript, Vite, Tailwind CSS, shadcn/ui, React Hook Form + Zod, TanStack Query, React Router, Recharts. Backend: Supabase (auth, tables, RLS). n8n webhook integration for emergency events.
+
+## Quickstart
+1. Clone repo:
+
+```
+git clone <repo-url>
+cd <repo>
+```
+
+2. Create branch or use the release branch:
+
+```
+git checkout release/v2.0.0
+```
+
+3. Copy environment template:
+
+```
+cp env.example .env
+```
+
+Fill `.env` values (VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY, N8N_EMERGENCY_WEBHOOK_URL, DEMO_USER_EMAIL, DEMO_USER_PASSWORD).
+
+4. Install dependencies and run:
+
+```
+npm install
+npm run dev
+```
+
+or
+
+```
+pnpm install
+pnpm dev
+```
+
+**Avoid using emojis in md files
+
+## Security note
+- Do not commit service-role keys or other secrets.
+- If any keys were accidentally committed earlier, rotate them immediately and report before any history rewrite.
+
+## Release: v2.0.0
+This tag contains the integrated app plus the fixes listed in CHANGELOG.md.
+
+## How to test (basic)
+- Login with `DEMO_USER_EMAIL` to verify read-only demo behavior.
+- Login with a real/test account to confirm full functionality: dashboard charts, daily form upsert, emergency event insertion and webhook POST, profile edits.
+- See CHANGELOG.md for full list of implemented features and fixes.
+
+## Versioning
+This repository uses semantic versioning. Create patch tags for minor fixes (v2.0.x), minor features as v2.x.0, major changes as v3.0.0, etc.
+
 # Sugar Insulin Tracker v2.0.0 - Supabase Integration
 
 A modern web application for tracking blood sugar levels and insulin dosage, now with full Supabase backend integration and demo read-only functionality.
