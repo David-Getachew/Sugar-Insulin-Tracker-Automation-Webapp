@@ -73,6 +73,8 @@ export const useDatabase = () => {
         .upsert({
           ...reading,
           user_id: user.id,
+          // Update edited_date when overwriting
+          edited_date: new Date().toISOString()
         }, {
           onConflict: 'user_id,date'
         });

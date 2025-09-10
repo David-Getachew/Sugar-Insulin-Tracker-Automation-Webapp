@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { X, ChevronDown } from "lucide-react";
+import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -110,18 +110,6 @@ const MultiSelect = React.forwardRef<
             placeholder={selected.length === 0 ? placeholder : ""}
             className="flex-1 border-0 focus-visible:ring-0 focus-visible:ring-offset-0 p-0 h-6 text-sm"
           />
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            className="h-6 w-6 p-0 hover:bg-transparent"
-            onClick={(e) => {
-              e.stopPropagation();
-              setOpen(!open);
-            }}
-          >
-            <ChevronDown className={cn("h-4 w-4 transition-transform", open && "rotate-180")} />
-          </Button>
         </div>
       </div>
       

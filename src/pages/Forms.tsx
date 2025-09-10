@@ -11,7 +11,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
-import { Calendar as CalendarIcon, PlusCircle, Trash2, Clock, AlertTriangle, CheckCircle, Loader2 } from "lucide-react";
+import { Calendar as CalendarIcon, PlusCircle, Trash2, Clock, AlertTriangle, CheckCircle, Loader2, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { useDatabase } from "@/hooks/useDatabase";
@@ -35,11 +35,11 @@ const readingFormSchema = z.object({
   }),
   morningSugar: z.preprocess(
     (val) => (val === "" || val === undefined ? undefined : Number(val)),
-    z.number().min(1, "Morning sugar level is required").max(500, "Value too high")
+    z.number().min(1, "Morning sugar level is required").max(800, "Value too high")
   ),
   nightSugar: z.preprocess(
     (val) => (val === "" || val === undefined ? undefined : Number(val)),
-    z.number().min(1, "Night sugar level is required").max(500, "Value too high")
+    z.number().min(1, "Night sugar level is required").max(800, "Value too high")
   ),
   morningDose: z.preprocess(
     (val) => (val === "" || val === undefined ? undefined : Number(val)),
@@ -61,7 +61,7 @@ const emergencyFormSchema = z.object({
   }),
   sugarLevel: z.preprocess(
     (val) => (val === "" || val === undefined ? undefined : Number(val)),
-    z.number().min(1, "Sugar level is required").max(500, "Value too high")
+    z.number().min(1, "Sugar level is required").max(800, "Value too high")
   ),
   symptoms: z.array(z.string()).min(1, "Please select at least one symptom"),
   additionalSymptoms: z.string().optional(),
@@ -274,7 +274,7 @@ const Forms = () => {
         const webhookUrl = import.meta.env.N8N_EMERGENCY_WEBHOOK_URL;
         if (webhookUrl) {
           try {
-            await fetch(webhookUrl, {
+            const response = await fetch(webhookUrl, {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
@@ -289,9 +289,16 @@ const Forms = () => {
                 timestamp: new Date().toISOString(),
               }),
             });
-            console.log('Emergency notification sent to N8N webhook');
+            
+            if (!response.ok) {
+              console.error('Webhook delivery failed:', response.status, response.statusText);
+              showError("Webhook delivery failed, but report saved");
+            } else {
+              console.log('Emergency notification sent to N8N webhook');
+            }
           } catch (webhookError) {
             console.error('Failed to send emergency notification:', webhookError);
+            showError("Webhook delivery failed, but report saved");
           }
         }
         
@@ -677,12 +684,17 @@ const Forms = () => {
                             Symptoms <span className="text-[#dc2626]">*</span>
                           </FormLabel>
                           <FormControl>
-                            <MultiSelect
-                              options={commonSymptoms}
-                              selected={field.value}
-                              onChange={field.onChange}
-                              placeholder="Select symptoms..."
-                            />
+                            <div className="relative">
+                              <MultiSelect
+                                options={commonSymptoms}
+                                selected={field.value}
+                                onChange={field.onChange}
+                                placeholder="Select symptoms..."
+                              />
+                              <div className="absolute right-2 top-1/2 transform -translate-y-1/2">
+                                <ChevronDown className="h-4 w-4 text-[#94a3b8]" />
+                              </div>
+                            </div>
                           </FormControl>
                           <FormMessage className="text-[#dc2626]" />
                         </FormItem>
@@ -716,12 +728,17 @@ const Forms = () => {
                         <FormItem>
                           <FormLabel className="text-[#475569]">Actions Taken</FormLabel>
                           <FormControl>
-                            <MultiSelect
-                              options={commonActions}
-                              selected={field.value || []}
-                              onChange={(selected) => field.onChange(selected)}
-                              placeholder="Select actions taken..."
-                            />
+                            <div className="relative">
+                              <MultiSelect
+                                options={commonActions}
+                                selected={field.value || []}
+                                onChange={(selected) => field.onChange(selected)}
+                                placeholder="Select actions taken..."
+                              />
+                              <div className="absolute right-2 top-1/2 transform -translate-y-1/2">
+                                <ChevronDown className="h-4 w-4 text-[#94a3b8]" />
+                              </div>
+                            </div>
                           </FormControl>
                           <FormMessage className="text-[#dc2626]" />
                         </FormItem>
@@ -868,7 +885,10 @@ const Forms = () => {
               Duplicate Date Detected
             </AlertDialogTitle>
             <AlertDialogDescription>
-              This date already has a form. Continuing will overwrite the existing entry.
+              A record already exists for this date.<br />
+              Submitting again will overwrite the existing entry.<br />
+              The original record will be updated with your new data.<br />
+              Do you want to continue?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -909,7 +929,7 @@ const Forms = () => {
               onClick={resetEmergencyForm}
               className="bg-[#0f766e] hover:bg-[#0d5c58] w-full"
             >
-              Submit Another Emergency
+              Close
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

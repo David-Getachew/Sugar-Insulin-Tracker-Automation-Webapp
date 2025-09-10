@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { PlusCircle, Trash2, HelpCircle, Edit, Save, Loader2 } from "lucide-react";
+import { PlusCircle, Trash2, HelpCircle, Edit, Save, X, Loader2 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useAuth } from "@/contexts/AuthContext";
 import { showSuccess, showError } from "@/utils/toast";
@@ -52,6 +52,7 @@ const Profile = () => {
   const [editingTelegramId, setEditingTelegramId] = useState<number | null>(null);
   const [editingSecondaryEmail, setEditingSecondaryEmail] = useState<number | null>(null);
   const [savingContact, setSavingContact] = useState<number | null>(null);
+  const [showNameSaveMessage, setShowNameSaveMessage] = useState(false);
 
   const isDemo = profile?.is_demo || false;
 
@@ -130,6 +131,7 @@ const Profile = () => {
       });
       
       showSuccess("Profile updated successfully");
+      setShowNameSaveMessage(false);
     } catch (error) {
       console.error("Error updating profile:", error);
       showError("Failed to update profile");
@@ -191,9 +193,32 @@ const Profile = () => {
 
   // Save edited telegram ID
   const saveTelegramId = async (index: number) => {
+    if (isDemo) {
+      setEditingTelegramId(null);
+      return;
+    }
+
     setSavingContact(index);
     // Simulate save delay for UX
     await new Promise(resolve => setTimeout(resolve, 500));
+    
+    // Save to database immediately
+    try {
+      const telegramIds = profileForm.getValues("telegramIds");
+      await updateProfile({
+        telegram_ids: telegramIds.map(item => item.handle).filter(Boolean),
+        secondary_emails: profileForm.getValues("secondaryEmails").filter(contact => 
+          contact.email && contact.email.trim() !== ''
+        ).map(contact => 
+          `${contact.email}:${contact.relationship || ''}`
+        ),
+      });
+      showSuccess("Telegram ID saved successfully");
+    } catch (error) {
+      console.error("Error saving Telegram ID:", error);
+      showError("Failed to save Telegram ID");
+    }
+    
     setEditingTelegramId(null);
     setSavingContact(null);
   };
@@ -226,11 +251,40 @@ const Profile = () => {
 
   // Save edited secondary contact
   const saveSecondaryEmail = async (index: number) => {
+    if (isDemo) {
+      setEditingSecondaryEmail(null);
+      return;
+    }
+
     setSavingContact(index + 1000); // Use different range for emails
     // Simulate save delay for UX
     await new Promise(resolve => setTimeout(resolve, 500));
+    
+    // Save to database immediately
+    try {
+      const secondaryEmails = profileForm.getValues("secondaryEmails");
+      await updateProfile({
+        telegram_ids: profileForm.getValues("telegramIds").map(item => item.handle).filter(Boolean),
+        secondary_emails: secondaryEmails.filter(contact => 
+          contact.email && contact.email.trim() !== ''
+        ).map(contact => 
+          `${contact.email}:${contact.relationship || ''}`
+        ),
+      });
+      showSuccess("Secondary email saved successfully");
+    } catch (error) {
+      console.error("Error saving secondary email:", error);
+      showError("Failed to save secondary email");
+    }
+    
     setEditingSecondaryEmail(null);
     setSavingContact(null);
+  };
+
+  // Handle name change
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    profileForm.setValue("full_name", e.target.value);
+    setShowNameSaveMessage(true);
   };
 
   return (
@@ -295,9 +349,15 @@ const Profile = () => {
                               <Input 
                                 placeholder="Your name" 
                                 {...field} 
+                                onChange={handleNameChange}
                                 className="border-[#cbd5e1] focus:ring-[#0f766e] focus:border-[#0f766e]"
                               />
                             </FormControl>
+                            {showNameSaveMessage && (
+                              <p className="text-sm text-[#0f766e] mt-1">
+                                Not saved yet — press Save Changes below to persist this update.
+                              </p>
+                            )}
                             <FormMessage className="text-[#dc2626]" />
                           </FormItem>
                         )}
@@ -372,9 +432,9 @@ const Profile = () => {
                       )}
                       
                       {profileForm.watch("telegramIds").map((item, index) => (
-                        <div key={index}>
+                        <div key={index} className="p-4 border border-[#e2e8f0] rounded-lg bg-white shadow-sm">
                           {editingTelegramId === index ? (
-                            <div className="p-4 border border-[#e2e8f0] rounded-lg bg-[#f9fafb]">
+                            <div className="space-y-4">
                               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <FormField
                                   control={profileForm.control}
@@ -417,7 +477,16 @@ const Profile = () => {
                                   )}
                                 />
                               </div>
-                              <div className="flex justify-end mt-4">
+                              <div className="flex justify-end space-x-2">
+                                <Button 
+                                  type="button" 
+                                  variant="outline"
+                                  onClick={() => removeTelegramId(index)}
+                                  className="border-[#dc2626] text-[#dc2626] hover:bg-[#dc2626] hover:text-white"
+                                >
+                                  <Trash2 className="h-4 w-4 mr-2" />
+                                  Delete
+                                </Button>
                                 <Button 
                                   type="button" 
                                   onClick={() => saveTelegramId(index)}
@@ -439,54 +508,52 @@ const Profile = () => {
                               </div>
                             </div>
                           ) : (
-                            <div className="p-4 border border-[#e2e8f0] rounded-lg bg-white shadow-sm">
-                              <div className="flex items-center justify-between">
-                                <div className="flex-1 min-w-0">
-                                  <div className="flex items-center justify-between">
-                                    <div className="font-medium text-[#0f172a]">{item.handle}</div>
-                                    {item.label && (
-                                      <div className="text-sm text-[#475569]">{item.label}</div>
-                                    )}
-                                  </div>
+                            <div className="flex items-center justify-between">
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center justify-between">
+                                  <div className="font-medium text-[#0f172a]">{item.handle}</div>
+                                  {item.label && (
+                                    <div className="text-sm text-[#475569]">{item.label}</div>
+                                  )}
                                 </div>
-                                <div className="flex space-x-1 ml-4">
-                                  <TooltipProvider delayDuration={0}>
-                                    <Tooltip>
-                                      <TooltipTrigger asChild>
-                                        <Button 
-                                          type="button" 
-                                          variant="ghost" 
-                                          size="icon" 
-                                          onClick={() => startEditingTelegramId(index)}
-                                          className="h-8 w-8 text-[#0f766e]"
-                                        >
-                                          <Edit className="h-4 w-4" />
-                                        </Button>
-                                      </TooltipTrigger>
-                                      <TooltipContent>
-                                        <p>Edit contact</p>
-                                      </TooltipContent>
-                                    </Tooltip>
-                                  </TooltipProvider>
-                                  <TooltipProvider delayDuration={0}>
-                                    <Tooltip>
-                                      <TooltipTrigger asChild>
-                                        <Button 
-                                          type="button" 
-                                          variant="ghost" 
-                                          size="icon" 
-                                          onClick={() => removeTelegramId(index)}
-                                          className="h-8 w-8 text-[#dc2626]"
-                                        >
-                                          <Trash2 className="h-4 w-4" />
-                                        </Button>
-                                      </TooltipTrigger>
-                                      <TooltipContent>
-                                        <p>Delete contact</p>
-                                      </TooltipContent>
-                                    </Tooltip>
-                                  </TooltipProvider>
-                                </div>
+                              </div>
+                              <div className="flex space-x-1 ml-4">
+                                <TooltipProvider delayDuration={0}>
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <Button 
+                                        type="button" 
+                                        variant="ghost" 
+                                        size="icon" 
+                                        onClick={() => startEditingTelegramId(index)}
+                                        className="h-8 w-8 text-[#0f766e] hover:bg-transparent"
+                                      >
+                                        <Edit className="h-4 w-4" />
+                                      </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                      <p>Edit contact</p>
+                                    </TooltipContent>
+                                  </Tooltip>
+                                </TooltipProvider>
+                                <TooltipProvider delayDuration={0}>
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <Button 
+                                        type="button" 
+                                        variant="ghost" 
+                                        size="icon" 
+                                        onClick={() => removeTelegramId(index)}
+                                        className="h-8 w-8 text-[#dc2626] hover:bg-transparent"
+                                      >
+                                        <Trash2 className="h-4 w-4" />
+                                      </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                      <p>Delete contact</p>
+                                    </TooltipContent>
+                                  </Tooltip>
+                                </TooltipProvider>
                               </div>
                             </div>
                           )}
@@ -516,22 +583,42 @@ const Profile = () => {
                       )}
                       
                       {profileForm.watch("secondaryEmails").map((contact, index) => (
-                        <div key={index}>
+                        <div key={index} className="p-4 border border-[#e2e8f0] rounded-lg bg-white shadow-sm">
                           {editingSecondaryEmail === index ? (
-                            <div className="p-4 border border-[#e2e8f0] rounded-lg bg-[#f9fafb]">
-                              <div className="space-y-4">
+                            <div className="space-y-4">
+                              <FormField
+                                control={profileForm.control}
+                                name={`secondaryEmails.${index}.name`}
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel className="text-[#475569] text-sm">Name (Required)</FormLabel>
+                                    <FormDescription className="text-[#64748b] text-xs">
+                                      Full name of the contact person.
+                                    </FormDescription>
+                                    <FormControl>
+                                      <Input 
+                                        placeholder="Contact name" 
+                                        {...field} 
+                                        className="border-[#cbd5e1] focus:ring-[#0f766e] focus:border-[#0f766e]"
+                                      />
+                                    </FormControl>
+                                    <FormMessage className="text-[#dc2626]" />
+                                  </FormItem>
+                                )}
+                              />
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <FormField
                                   control={profileForm.control}
-                                  name={`secondaryEmails.${index}.name`}
+                                  name={`secondaryEmails.${index}.relationship`}
                                   render={({ field }) => (
                                     <FormItem>
-                                      <FormLabel className="text-[#475569] text-sm">Name (Required)</FormLabel>
+                                      <FormLabel className="text-[#475569] text-sm">Relation (Optional)</FormLabel>
                                       <FormDescription className="text-[#64748b] text-xs">
-                                        Full name of the contact person.
+                                        Relationship to you (e.g. spouse, child, parent).
                                       </FormDescription>
                                       <FormControl>
                                         <Input 
-                                          placeholder="Contact name" 
+                                          placeholder="e.g., Spouse, Doctor" 
                                           {...field} 
                                           className="border-[#cbd5e1] focus:ring-[#0f766e] focus:border-[#0f766e]"
                                         />
@@ -540,50 +627,37 @@ const Profile = () => {
                                     </FormItem>
                                   )}
                                 />
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                  <FormField
-                                    control={profileForm.control}
-                                    name={`secondaryEmails.${index}.relationship`}
-                                    render={({ field }) => (
-                                      <FormItem>
-                                        <FormLabel className="text-[#475569] text-sm">Relation (Optional)</FormLabel>
-                                        <FormDescription className="text-[#64748b] text-xs">
-                                          Relationship to you (e.g. spouse, child, parent).
-                                        </FormDescription>
-                                        <FormControl>
-                                          <Input 
-                                            placeholder="e.g., Spouse, Doctor" 
-                                            {...field} 
-                                            className="border-[#cbd5e1] focus:ring-[#0f766e] focus:border-[#0f766e]"
-                                          />
-                                        </FormControl>
-                                        <FormMessage className="text-[#dc2626]" />
-                                      </FormItem>
-                                    )}
-                                  />
-                                  <FormField
-                                    control={profileForm.control}
-                                    name={`secondaryEmails.${index}.email`}
-                                    render={({ field }) => (
-                                      <FormItem>
-                                        <FormLabel className="text-[#475569] text-sm">Email (Required)</FormLabel>
-                                        <FormDescription className="text-[#64748b] text-xs">
-                                          Valid email address for this contact.
-                                        </FormDescription>
-                                        <FormControl>
-                                          <Input 
-                                            placeholder="contact@example.com" 
-                                            {...field} 
-                                            className="border-[#cbd5e1] focus:ring-[#0f766e] focus:border-[#0f766e]"
-                                          />
-                                        </FormControl>
-                                        <FormMessage className="text-[#dc2626]" />
-                                      </FormItem>
-                                    )}
-                                  />
-                                </div>
+                                <FormField
+                                  control={profileForm.control}
+                                  name={`secondaryEmails.${index}.email`}
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel className="text-[#475569] text-sm">Email (Required)</FormLabel>
+                                      <FormDescription className="text-[#64748b] text-xs">
+                                        Valid email address for this contact.
+                                      </FormDescription>
+                                      <FormControl>
+                                        <Input 
+                                          placeholder="contact@example.com" 
+                                          {...field} 
+                                          className="border-[#cbd5e1] focus:ring-[#0f766e] focus:border-[#0f766e]"
+                                        />
+                                      </FormControl>
+                                      <FormMessage className="text-[#dc2626]" />
+                                    </FormItem>
+                                  )}
+                                />
                               </div>
-                              <div className="flex justify-end mt-4">
+                              <div className="flex justify-end space-x-2">
+                                <Button 
+                                  type="button" 
+                                  variant="outline"
+                                  onClick={() => removeSecondaryContact(index)}
+                                  className="border-[#dc2626] text-[#dc2626] hover:bg-[#dc2626] hover:text-white"
+                                >
+                                  <Trash2 className="h-4 w-4 mr-2" />
+                                  Delete
+                                </Button>
                                 <Button 
                                   type="button" 
                                   onClick={() => saveSecondaryEmail(index)}
@@ -605,57 +679,55 @@ const Profile = () => {
                               </div>
                             </div>
                           ) : (
-                            <div className="p-4 border border-[#e2e8f0] rounded-lg bg-white shadow-sm">
-                              <div className="flex items-center justify-between">
-                                <div className="flex-1 min-w-0">
-                                  <div className="font-medium text-[#0f172a] mb-2">{contact.name}</div>
-                                  <div className="flex items-center justify-between">
-                                    <div className="text-sm text-[#475569]">
-                                      {contact.relationship && (
-                                        <span className="text-xs text-[#64748b]">{contact.relationship}</span>
-                                      )}
-                                    </div>
-                                    <div className="text-sm text-[#475569]">{contact.email}</div>
+                            <div className="flex items-center justify-between">
+                              <div className="flex-1 min-w-0">
+                                <div className="font-medium text-[#0f172a] mb-2">{contact.name}</div>
+                                <div className="flex items-center justify-between">
+                                  <div className="text-sm text-[#475569]">
+                                    {contact.relationship && (
+                                      <span className="text-xs text-[#64748b]">{contact.relationship}</span>
+                                    )}
                                   </div>
+                                  <div className="text-sm text-[#475569]">{contact.email}</div>
                                 </div>
-                                <div className="flex space-x-1 ml-4">
-                                  <TooltipProvider delayDuration={0}>
-                                    <Tooltip>
-                                      <TooltipTrigger asChild>
-                                        <Button 
-                                          type="button" 
-                                          variant="ghost" 
-                                          size="icon" 
-                                          onClick={() => startEditingSecondaryEmail(index)}
-                                          className="h-8 w-8 text-[#0f766e]"
-                                        >
-                                          <Edit className="h-4 w-4" />
-                                        </Button>
-                                      </TooltipTrigger>
-                                      <TooltipContent>
-                                        <p>Edit contact</p>
-                                      </TooltipContent>
-                                    </Tooltip>
-                                  </TooltipProvider>
-                                  <TooltipProvider delayDuration={0}>
-                                    <Tooltip>
-                                      <TooltipTrigger asChild>
-                                        <Button 
-                                          type="button" 
-                                          variant="ghost" 
-                                          size="icon" 
-                                          onClick={() => removeSecondaryContact(index)}
-                                          className="h-8 w-8 text-[#dc2626]"
-                                        >
-                                          <Trash2 className="h-4 w-4" />
-                                        </Button>
-                                      </TooltipTrigger>
-                                      <TooltipContent>
-                                        <p>Delete contact</p>
-                                      </TooltipContent>
-                                    </Tooltip>
-                                  </TooltipProvider>
-                                </div>
+                              </div>
+                              <div className="flex space-x-1 ml-4">
+                                <TooltipProvider delayDuration={0}>
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <Button 
+                                        type="button" 
+                                        variant="ghost" 
+                                        size="icon" 
+                                        onClick={() => startEditingSecondaryEmail(index)}
+                                        className="h-8 w-8 text-[#0f766e] hover:bg-transparent"
+                                      >
+                                        <Edit className="h-4 w-4" />
+                                      </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                      <p>Edit contact</p>
+                                    </TooltipContent>
+                                  </Tooltip>
+                                </TooltipProvider>
+                                <TooltipProvider delayDuration={0}>
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <Button 
+                                        type="button" 
+                                        variant="ghost" 
+                                        size="icon" 
+                                        onClick={() => removeSecondaryContact(index)}
+                                        className="h-8 w-8 text-[#dc2626] hover:bg-transparent"
+                                      >
+                                        <Trash2 className="h-4 w-4" />
+                                      </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                      <p>Delete contact</p>
+                                    </TooltipContent>
+                                  </Tooltip>
+                                </TooltipProvider>
                               </div>
                             </div>
                           )}
