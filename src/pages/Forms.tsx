@@ -271,9 +271,14 @@ const Forms = () => {
       
       if (emergency) {
         // Send to N8N webhook if available
-        const webhookUrl = import.meta.env.N8N_EMERGENCY_WEBHOOK_URL;
+        const webhookUrl = import.meta.env.VITE_N8N_EMERGENCY_WEBHOOK_URL;
         if (webhookUrl) {
           try {
+            // Log in dev mode
+            if (import.meta.env.DEV) {
+              console.log('Sending webhook to:', webhookUrl);
+            }
+            
             const response = await fetch(webhookUrl, {
               method: 'POST',
               headers: {
@@ -292,13 +297,13 @@ const Forms = () => {
             
             if (!response.ok) {
               console.error('Webhook delivery failed:', response.status, response.statusText);
-              showError("Webhook delivery failed, but report saved");
+              showError("Webhook delivery failed, report saved");
             } else {
               console.log('Emergency notification sent to N8N webhook');
             }
           } catch (webhookError) {
             console.error('Failed to send emergency notification:', webhookError);
-            showError("Webhook delivery failed, but report saved");
+            showError("Webhook delivery failed, report saved");
           }
         }
         

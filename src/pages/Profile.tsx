@@ -53,17 +53,16 @@ const Profile = () => {
   const [editingSecondaryEmail, setEditingSecondaryEmail] = useState<number | null>(null);
   const [savingContact, setSavingContact] = useState<number | null>(null);
   const [showNameSaveMessage, setShowNameSaveMessage] = useState(false);
+  const [originalFullName, setOriginalFullName] = useState("");
 
   const isDemo = profile?.is_demo || false;
 
   // Helper function to parse secondary emails from "email:relationship" format
   const parseSecondaryEmails = (secondaryEmails: string[] = []) => {
-    return secondaryEmails.map((item, index) => {
+    return secondaryEmails.map(item => {
       const [email, relationship = ''] = item.split(':');
-      // Extract name from existing data or use email prefix as fallback
-      const name = `Contact ${index + 1}`; // We'll preserve actual names from form data
       return {
-        name: name,
+        name: email?.split('@')[0] || '', // Use email prefix as fallback but allow override
         email: email || '',
         relationship: relationship || ''
       };
@@ -72,10 +71,13 @@ const Profile = () => {
 
   // Helper function to parse telegram IDs with relations
   const parseTelegramIds = (telegramIds: string[] = []) => {
-    return telegramIds.map(id => ({
-      handle: id,
-      label: "" // Relations will be stored separately if needed
-    }));
+    return telegramIds.map(id => {
+      const [handle, label = ''] = id.split(':');
+      return {
+        handle: handle || '',
+        label: label || ''
+      };
+    });
   };
 
   const defaultValues: ProfileFormValues = {
@@ -93,12 +95,17 @@ const Profile = () => {
   // Update form when profile data loads
   useEffect(() => {
     if (profile) {
+      const parsedTelegramIds = parseTelegramIds(profile.telegram_ids);
+      const parsedSecondaryEmails = parseSecondaryEmails(profile.secondary_emails);
+      
       profileForm.reset({
         full_name: profile.full_name,
         email: profile.email,
-        telegramIds: parseTelegramIds(profile.telegram_ids),
-        secondaryEmails: parseSecondaryEmails(profile.secondary_emails),
+        telegramIds: parsedTelegramIds,
+        secondaryEmails: parsedSecondaryEmails,
       });
+      
+      setOriginalFullName(profile.full_name);
     }
   }, [profile, profileForm]);
 
@@ -120,9 +127,14 @@ const Profile = () => {
     setIsProfileLoading(true);
     
     try {
+      // Format telegram IDs with relations
+      const formattedTelegramIds = values.telegramIds.map(item => 
+        item.handle ? `${item.handle}:${item.label || ''}` : ''
+      ).filter(Boolean);
+      
       await updateProfile({
         full_name: values.full_name,
-        telegram_ids: values.telegramIds.map(item => item.handle).filter(Boolean),
+        telegram_ids: formattedTelegramIds,
         secondary_emails: values.secondaryEmails.filter(contact => 
           contact.email && contact.email.trim() !== ''
         ).map(contact => 
@@ -130,8 +142,9 @@ const Profile = () => {
         ),
       });
       
-      showSuccess("Profile updated successfully");
+      setOriginalFullName(values.full_name);
       setShowNameSaveMessage(false);
+      showSuccess("Profile updated successfully");
     } catch (error) {
       console.error("Error updating profile:", error);
       showError("Failed to update profile");
@@ -188,6 +201,7 @@ const Profile = () => {
 
   // Start editing a telegram ID
   const startEditingTelegramId = (index: number) => {
+    if (isDemo) return;
     setEditingTelegramId(index);
   };
 
@@ -198,21 +212,35 @@ const Profile = () => {
       return;
     }
 
-    setSavingContact(index);
-    // Simulate save delay for UX
-    await new Promise(resolve => setTimeout(resolve, 500));
+    // Validate the form for this specific item
+    const telegramIds = profileForm.getValues("telegramIds");
+    const currentItem = telegramIds[index];
     
-    // Save to database immediately
+    if (!currentItem.handle) {
+      profileForm.setError(`telegramIds.${index}.handle`, {
+        type: "manual",
+        message: "Telegram ID is required"
+      });
+      return;
+    }
+
+    setSavingContact(index);
+    
     try {
-      const telegramIds = profileForm.getValues("telegramIds");
+      // Format telegram IDs with relations
+      const updatedTelegramIds = profileForm.getValues("telegramIds").map(item => 
+        item.handle ? `${item.handle}:${item.label || ''}` : ''
+      ).filter(Boolean);
+      
       await updateProfile({
-        telegram_ids: telegramIds.map(item => item.handle).filter(Boolean),
+        telegram_ids: updatedTelegramIds,
         secondary_emails: profileForm.getValues("secondaryEmails").filter(contact => 
           contact.email && contact.email.trim() !== ''
         ).map(contact => 
           `${contact.email}:${contact.relationship || ''}`
         ),
       });
+      
       showSuccess("Telegram ID saved successfully");
     } catch (error) {
       console.error("Error saving Telegram ID:", error);
@@ -246,6 +274,7 @@ const Profile = () => {
 
   // Start editing a secondary contact
   const startEditingSecondaryEmail = (index: number) => {
+    if (isDemo) return;
     setEditingSecondaryEmail(index);
   };
 
@@ -256,21 +285,55 @@ const Profile = () => {
       return;
     }
 
-    setSavingContact(index + 1000); // Use different range for emails
-    // Simulate save delay for UX
-    await new Promise(resolve => setTimeout(resolve, 500));
+    // Validate the form for this specific item
+    const secondaryEmails = profileForm.getValues("secondaryEmails");
+    const currentItem = secondaryEmails[index];
     
-    // Save to database immediately
+    if (!currentItem.name) {
+      profileForm.setError(`secondaryEmails.${index}.name`, {
+        type: "manual",
+        message: "Name is required"
+      });
+      return;
+    }
+    
+    if (!currentItem.email) {
+      profileForm.setError(`secondaryEmails.${index}.email`, {
+        type: "manual",
+        message: "Email is required"
+      });
+      return;
+    }
+    
     try {
-      const secondaryEmails = profileForm.getValues("secondaryEmails");
+      // Validate email format
+      const emailSchema = z.string().email();
+      emailSchema.parse(currentItem.email);
+    } catch {
+      profileForm.setError(`secondaryEmails.${index}.email`, {
+        type: "manual",
+        message: "Please enter a valid email address"
+      });
+      return;
+    }
+
+    setSavingContact(index + 1000); // Use different range for emails
+    
+    try {
+      // Format telegram IDs with relations
+      const updatedTelegramIds = profileForm.getValues("telegramIds").map(item => 
+        item.handle ? `${item.handle}:${item.label || ''}` : ''
+      ).filter(Boolean);
+      
       await updateProfile({
-        telegram_ids: profileForm.getValues("telegramIds").map(item => item.handle).filter(Boolean),
-        secondary_emails: secondaryEmails.filter(contact => 
+        telegram_ids: updatedTelegramIds,
+        secondary_emails: profileForm.getValues("secondaryEmails").filter(contact => 
           contact.email && contact.email.trim() !== ''
         ).map(contact => 
           `${contact.email}:${contact.relationship || ''}`
         ),
       });
+      
       showSuccess("Secondary email saved successfully");
     } catch (error) {
       console.error("Error saving secondary email:", error);
@@ -284,7 +347,7 @@ const Profile = () => {
   // Handle name change
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     profileForm.setValue("full_name", e.target.value);
-    setShowNameSaveMessage(true);
+    setShowNameSaveMessage(e.target.value !== originalFullName);
   };
 
   return (
@@ -419,6 +482,7 @@ const Profile = () => {
                           size="sm" 
                           onClick={addTelegramId}
                           className="border-[#0f766e] text-[#0f766e] hover:bg-[#14b8a6] hover:text-white"
+                          disabled={isDemo}
                         >
                           <PlusCircle className="h-4 w-4 mr-2" />
                           Add ID
@@ -508,16 +572,14 @@ const Profile = () => {
                               </div>
                             </div>
                           ) : (
-                            <div className="flex items-center justify-between">
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center justify-between">
-                                  <div className="font-medium text-[#0f172a]">{item.handle}</div>
-                                  {item.label && (
-                                    <div className="text-sm text-[#475569]">{item.label}</div>
-                                  )}
-                                </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div>
+                                <div className="text-sm font-medium text-[#0f172a]">{item.handle}</div>
+                                {item.label && (
+                                  <div className="text-xs text-[#475569] mt-1">{item.label}</div>
+                                )}
                               </div>
-                              <div className="flex space-x-1 ml-4">
+                              <div className="flex justify-end space-x-1">
                                 <TooltipProvider delayDuration={0}>
                                   <Tooltip>
                                     <TooltipTrigger asChild>
@@ -527,6 +589,7 @@ const Profile = () => {
                                         size="icon" 
                                         onClick={() => startEditingTelegramId(index)}
                                         className="h-8 w-8 text-[#0f766e] hover:bg-transparent"
+                                        disabled={isDemo}
                                       >
                                         <Edit className="h-4 w-4" />
                                       </Button>
@@ -545,6 +608,7 @@ const Profile = () => {
                                         size="icon" 
                                         onClick={() => removeTelegramId(index)}
                                         className="h-8 w-8 text-[#dc2626] hover:bg-transparent"
+                                        disabled={isDemo}
                                       >
                                         <Trash2 className="h-4 w-4" />
                                       </Button>
@@ -570,6 +634,7 @@ const Profile = () => {
                           size="sm" 
                           onClick={addSecondaryContact}
                           className="border-[#0f766e] text-[#0f766e] hover:bg-[#14b8a6] hover:text-white"
+                          disabled={isDemo}
                         >
                           <PlusCircle className="h-4 w-4 mr-2" />
                           Add Email
@@ -679,19 +744,17 @@ const Profile = () => {
                               </div>
                             </div>
                           ) : (
-                            <div className="flex items-center justify-between">
-                              <div className="flex-1 min-w-0">
-                                <div className="font-medium text-[#0f172a] mb-2">{contact.name}</div>
-                                <div className="flex items-center justify-between">
-                                  <div className="text-sm text-[#475569]">
-                                    {contact.relationship && (
-                                      <span className="text-xs text-[#64748b]">{contact.relationship}</span>
-                                    )}
-                                  </div>
-                                  <div className="text-sm text-[#475569]">{contact.email}</div>
-                                </div>
+                            <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
+                              <div className="md:col-span-5">
+                                <div className="text-sm font-medium text-[#0f172a]">{contact.name}</div>
+                                {contact.relationship && (
+                                  <div className="text-xs text-[#475569] mt-1">{contact.relationship}</div>
+                                )}
                               </div>
-                              <div className="flex space-x-1 ml-4">
+                              <div className="md:col-span-5">
+                                <div className="text-sm text-[#475569]">{contact.email}</div>
+                              </div>
+                              <div className="md:col-span-2 flex justify-end space-x-1">
                                 <TooltipProvider delayDuration={0}>
                                   <Tooltip>
                                     <TooltipTrigger asChild>
@@ -701,6 +764,7 @@ const Profile = () => {
                                         size="icon" 
                                         onClick={() => startEditingSecondaryEmail(index)}
                                         className="h-8 w-8 text-[#0f766e] hover:bg-transparent"
+                                        disabled={isDemo}
                                       >
                                         <Edit className="h-4 w-4" />
                                       </Button>
@@ -719,6 +783,7 @@ const Profile = () => {
                                         size="icon" 
                                         onClick={() => removeSecondaryContact(index)}
                                         className="h-8 w-8 text-[#dc2626] hover:bg-transparent"
+                                        disabled={isDemo}
                                       >
                                         <Trash2 className="h-4 w-4" />
                                       </Button>

@@ -114,7 +114,8 @@ const Login = () => {
             Contact your administrator if you need access to the system.
           </p>
           <p className="text-xs text-center text-[#475569]">
-            For demo: use your demo account credentials from .env file
+            Wanna try it out? Login with the demo credential:<br />
+            <span className="font-mono">demo@example.com / password</span>
           </p>
         </CardFooter>
       </Card>

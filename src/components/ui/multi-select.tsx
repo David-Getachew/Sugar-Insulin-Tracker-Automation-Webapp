@@ -83,9 +83,13 @@ const MultiSelect = React.forwardRef<
           <Badge 
             key={item} 
             className={cn(
-              "flex items-center gap-1 pl-2 pr-1 py-1 text-sm",
+              "flex items-center gap-1 pl-2 pr-1 py-1 text-sm cursor-pointer",
               pillColors[index % pillColors.length]
             )}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleRemove(item);
+            }}
           >
             {item}
             <button
