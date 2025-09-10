@@ -7,11 +7,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
-import { Calendar as CalendarIcon, PlusCircle, Trash2, Clock, AlertTriangle } from "lucide-react";
+import { Calendar as CalendarIcon, PlusCircle, Trash2, Clock, AlertTriangle, CheckCircle, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { useDatabase } from "@/hooks/useDatabase";
@@ -90,7 +90,9 @@ const commonSymptoms = [
   "Confusion",
   "Fatigue",
   "Nausea",
-  "Headache"
+  "Headache",
+  "Blurred vision",
+  "Shakiness"
 ];
 
 const commonActions = [
@@ -98,8 +100,8 @@ const commonActions = [
   "Ate sugar/snack",
   "Drank water",
   "Rested",
-  "Contacted doctor",
-  "Monitored blood sugar"
+  "Monitored blood sugar",
+  "Called Emergency Services"
 ];
 
 const Forms = () => {
@@ -113,6 +115,7 @@ const Forms = () => {
   const [showDuplicateDialog, setShowDuplicateDialog] = useState(false);
   const [pendingReadingData, setPendingReadingData] = useState<ReadingFormValues | null>(null);
   const [existingDates, setExistingDates] = useState<string[]>([]);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   const isDemo = profile?.is_demo || false;
 
@@ -187,7 +190,6 @@ const Forms = () => {
     setIsReadingLoading(true);
     
     try {
-      // Try with the current schema first, but prepare alternative column names
       const readingData = {
         date: format(values.date, 'yyyy-MM-dd'),
         sugar_morning: values.morningSugar,
@@ -249,10 +251,12 @@ const Forms = () => {
         event_date: format(values.date, 'yyyy-MM-dd'),
         event_time: values.time,
         sugar_level: values.sugarLevel,
-        symptoms: allSymptoms.join(', '),
-        actions_taken: allActions.length > 0 ? allActions.join(', ') : null,
+        symptoms: allSymptoms, // Send as array
+        actions_taken: allActions.length > 0 ? allActions : null, // Send as array or null
         notes: values.notes || null,
       };
+
+      console.log('Submitting emergency data:', emergencyData);
 
       // Create emergency record first
       const emergency = await createEmergency(emergencyData);
@@ -290,9 +294,9 @@ const Forms = () => {
             console.error('Failed to send emergency notification:', webhookError);
           }
         }
-      }
-      
-      if (emergency) {
+        
+        // Show success modal
+        setShowSuccessModal(true);
         emergencyForm.reset({
           sugarLevel: "" as any,
           symptoms: [],
@@ -303,13 +307,18 @@ const Forms = () => {
           notes: "",
           time: "",
         });
-        showSuccess("Emergency report submitted successfully");
       } else {
         showError("Failed to save emergency report. Please check your connection and try again.");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error submitting emergency form:", error);
-      showError("An error occurred while saving emergency report. Please try again.");
+      
+      // Check for array formatting errors
+      if (error.message && error.message.includes('malformed array literal')) {
+        showError("Database error: Array formatting issue. Please contact support with error: " + error.message);
+      } else {
+        showError("An error occurred while saving emergency report: " + (error.message || "Unknown error"));
+      }
     } finally {
       setIsEmergencyLoading(false);
     }
@@ -326,6 +335,20 @@ const Forms = () => {
   const removeMedication = (index: number) => {
     const currentMedications = emergencyForm.getValues("medicationsGiven") || [];
     emergencyForm.setValue("medicationsGiven", currentMedications.filter((_, i) => i !== index));
+  };
+
+  const resetEmergencyForm = () => {
+    setShowSuccessModal(false);
+    emergencyForm.reset({
+      sugarLevel: "" as any,
+      symptoms: [],
+      additionalSymptoms: "",
+      actionsTaken: [],
+      additionalActions: "",
+      medicationsGiven: [],
+      notes: "",
+      time: "",
+    });
   };
 
   return (
@@ -407,7 +430,7 @@ const Forms = () => {
                               selected={field.value}
                               onSelect={(date) => {
                                 field.onChange(date);
-                                setOpenDatePicker(false); // Close picker after selection
+                                setOpenDatePicker(false);
                               }}
                               disabled={(date) =>
                                 date > new Date() || date < new Date("1900-01-01")
@@ -532,7 +555,12 @@ const Forms = () => {
                   />
                   
                   <Button type="submit" disabled={isReadingLoading || isDemo}>
-                    {isDemo ? "Demo Mode - Read Only" : (isReadingLoading ? "Submitting..." : "Submit Reading")}
+                    {isDemo ? "Demo Mode - Read Only" : (isReadingLoading ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Submitting...
+                      </>
+                    ) : "Submit Reading")}
                   </Button>
                 </form>
               </Form>
@@ -579,7 +607,7 @@ const Forms = () => {
                                 selected={field.value}
                                 onSelect={(date) => {
                                   field.onChange(date);
-                                  setOpenEmergencyDatePicker(false); // Close picker after selection
+                                  setOpenEmergencyDatePicker(false);
                                 }}
                                 disabled={(date) =>
                                   date > new Date() || date < new Date("1900-01-01")
@@ -817,7 +845,12 @@ const Forms = () => {
                   />
                   
                   <Button type="submit" disabled={isEmergencyLoading || isDemo}>
-                    {isDemo ? "Demo Mode - Read Only" : (isEmergencyLoading ? "Submitting..." : "Submit Emergency Report")}
+                    {isDemo ? "Demo Mode - Read Only" : (isEmergencyLoading ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Submitting...
+                      </>
+                    ) : "Submit Emergency Report")}
                   </Button>
                 </form>
               </Form>
@@ -845,6 +878,38 @@ const Forms = () => {
               className="bg-[#0f766e] hover:bg-[#0d5c58]"
             >
               Continue
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Success Modal */}
+      <AlertDialog open={showSuccessModal} onOpenChange={setShowSuccessModal}>
+        <AlertDialogContent className="max-w-md">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center text-[#0f766e]">
+              <CheckCircle className="h-6 w-6 mr-2" />
+              Emergency Report Submitted
+            </AlertDialogTitle>
+            <AlertDialogDescription className="space-y-3">
+              <p>Your emergency report has been successfully submitted and relevant contacts have been notified.</p>
+              <div className="bg-[#f0fdfa] p-3 rounded-md">
+                <h4 className="font-medium text-[#0f766e] mb-2">What to do next:</h4>
+                <ul className="text-sm text-[#475569] space-y-1">
+                  <li>• Continue monitoring your blood sugar levels</li>
+                  <li>• Follow any medical advice you've received</li>
+                  <li>• Contact emergency services if symptoms worsen</li>
+                  <li>• Keep emergency medications accessible</li>
+                </ul>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction 
+              onClick={resetEmergencyForm}
+              className="bg-[#0f766e] hover:bg-[#0d5c58] w-full"
+            >
+              Submit Another Emergency
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

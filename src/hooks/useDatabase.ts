@@ -102,12 +102,23 @@ export const useDatabase = () => {
     
     setLoading(true);
     try {
+      // Ensure symptoms and actions_taken are properly formatted as arrays
+      const emergencyData = {
+        ...emergency,
+        user_id: user.id,
+        // Convert symptoms to array if it's a string
+        symptoms: Array.isArray(emergency.symptoms) ? emergency.symptoms : [emergency.symptoms].filter(Boolean),
+        // Convert actions_taken to array if it's a string, or keep as null if empty
+        actions_taken: emergency.actions_taken 
+          ? (Array.isArray(emergency.actions_taken) ? emergency.actions_taken : [emergency.actions_taken].filter(Boolean))
+          : null
+      };
+
+      console.log('Inserting emergency data:', emergencyData);
+
       const { data, error } = await supabase
-        .from('emergency_events') // Changed from 'emergencies' to 'emergency_events'
-        .insert({
-          ...emergency,
-          user_id: user.id,
-        })
+        .from('emergency_events')
+        .insert(emergencyData)
         .select()
         .single();
 
@@ -117,6 +128,8 @@ export const useDatabase = () => {
           showError('Application is in offline mode. Please check your internet connection.');
         } else if (error.message.includes('Network')) {
           showError('Network error. Please check your connection and try again.');
+        } else if (error.message.includes('malformed array literal')) {
+          showError('Database error: Array formatting issue. Error details: ' + error.message);
         } else {
           showError(`Failed to save emergency report: ${error.message}`);
         }
@@ -130,7 +143,7 @@ export const useDatabase = () => {
       if (error.message === 'Offline mode') {
         showError('Application is in offline mode. Please configure your Supabase connection.');
       } else {
-        showError('Failed to save emergency report. Please try again.');
+        showError('Failed to save emergency report: ' + (error.message || 'Unknown error'));
       }
       return null;
     } finally {
@@ -144,7 +157,7 @@ export const useDatabase = () => {
     setLoading(true)
     try {
       const { data, error } = await supabase
-        .from('emergency_events') // Changed from 'emergencies' to 'emergency_events'
+        .from('emergency_events')
         .select('*')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
