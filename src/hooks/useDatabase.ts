@@ -138,6 +138,50 @@ export const useDatabase = () => {
         return null;
       }
       
+      // Send webhook after successful insertion
+      if (data) {
+        const webhookUrl = import.meta.env.VITE_N8N_EMERGENCY_WEBHOOK_URL;
+        if (webhookUrl) {
+          try {
+            // Format the data as required
+            const webhookPayload = {
+              record: data
+            };
+            
+            console.log('Sending webhook payload:', webhookPayload);
+            
+            // First attempt
+            let response = await fetch(webhookUrl, {
+              method: 'POST',
+              headers: {'Content-Type':'application/json'},
+              body: JSON.stringify(webhookPayload)
+            });
+            
+            // Retry once on non-2xx
+            if (!response.ok) {
+              console.log('First webhook attempt failed, retrying...');
+              response = await fetch(webhookUrl, {
+                method: 'POST',
+                headers: {'Content-Type':'application/json'},
+                body: JSON.stringify(webhookPayload)
+              });
+              
+              if (!response.ok) {
+                console.error('Webhook delivery failed after retry:', response.status, response.statusText);
+                showError("Webhook delivery failed, but report saved.");
+              } else {
+                console.log('Emergency notification sent to N8N webhook on retry');
+              }
+            } else {
+              console.log('Emergency notification sent to N8N webhook');
+            }
+          } catch (webhookError) {
+            console.error('Failed to send emergency notification:', webhookError);
+            showError("Webhook delivery failed, but report saved.");
+          }
+        }
+      }
+      
       showSuccess('Emergency report saved successfully');
       return data;
     } catch (error: any) {

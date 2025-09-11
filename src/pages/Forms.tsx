@@ -251,8 +251,8 @@ const Forms = () => {
         event_date: format(values.date, 'yyyy-MM-dd'),
         event_time: values.time,
         sugar_level: values.sugarLevel,
-        symptoms: allSymptoms, // Send as array
-        actions_taken: allActions.length > 0 ? allActions : null, // Send as array or null
+        symptoms: JSON.stringify(allSymptoms), // Send as JSON string
+        actions_taken: allActions.length > 0 ? JSON.stringify(allActions) : null, // Send as JSON string or null
         notes: values.notes || null,
       };
 
@@ -263,7 +263,13 @@ const Forms = () => {
       
       // If emergency was created successfully and there are medications, save them
       if (emergency && values.medicationsGiven?.length) {
-        const medications = values.medicationsGiven.filter(med => med.name && med.dose);
+        const medications = values.medicationsGiven
+          .filter(med => med.name && med.dose)
+          .map(med => ({
+            name: med.name,
+            dose: med.dose
+          }));
+          
         if (medications.length > 0) {
           await saveMedications(emergency.id, medications);
         }
@@ -642,8 +648,19 @@ const Forms = () => {
                             Time <span className="text-[#dc2626]">*</span>
                           </FormLabel>
                           <FormControl>
-                            <div className="relative">
+                            <div 
+                              className="relative cursor-pointer"
+                              onClick={() => {
+                                // Focus the input when the container is clicked
+                                const input = document.getElementById('emergency-time-input');
+                                if (input) {
+                                  input.focus();
+                                  input.click();
+                                }
+                              }}
+                            >
                               <Input
+                                id="emergency-time-input"
                                 type="time"
                                 {...field}
                                 className="border-[#cbd5e1] focus:ring-[#0f766e] focus:border-[#0f766e] pr-10"

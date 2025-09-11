@@ -81,7 +81,24 @@ const MainLayout = ({ children }: MainLayoutProps) => {
 
         <footer className="bg-white border-t border-gray-200 py-4">
           <div className="container mx-auto px-4 text-center text-sm text-[#475569]">
-            &copy; {new Date().getFullYear()} Sugar & Insulin Tracker
+            Built by Dawit Getachew — © 2025 Sugar & Insulin Tracker ·{' '}
+            <a 
+              href="https://github.com/David-Getachew" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-[#0f766e] hover:underline"
+            >
+              GitHub
+            </a>{' '}
+            ·{' '}
+            <a 
+              href="https://www.linkedin.com/in/dawit-getachew-mekonen" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-[#0f766e] hover:underline"
+            >
+              LinkedIn
+            </a>
           </div>
         </footer>
       </div>
