@@ -3,6 +3,11 @@
 ## Overview
 This document describes the implementation of a secure webhook proxy for the Sugar & Insulin Tracker application. The proxy moves the webhook secret from client-side code to server-side environment variables, addressing the security vulnerability of exposing secrets in client-side code.
 
+## Security Issue Addressed
+The original implementation had a critical security vulnerability:
+- Hardcoded webhook secret `4sD8fJk9PqZ!vT2LmN6xW` was exposed in the client-side code (`src/hooks/useDatabase.ts`)
+- This secret has been completely removed from the client-side code
+
 ## Implementation Details
 
 ### 1. Serverless Function (api/webhook-proxy.js)
