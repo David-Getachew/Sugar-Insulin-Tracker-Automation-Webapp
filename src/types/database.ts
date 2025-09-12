@@ -29,8 +29,8 @@ export interface Emergency {
   event_date: string
   event_time: string
   sugar_level: number
-  symptoms: string
-  actions_taken?: string
+  symptoms: string[]
+  actions_taken?: string[] | null
   notes?: string
   created_at: string
 }

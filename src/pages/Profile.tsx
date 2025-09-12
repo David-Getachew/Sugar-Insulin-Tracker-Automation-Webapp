@@ -12,6 +12,16 @@ import { PlusCircle, Trash2, HelpCircle, Edit, Save, X, Loader2 } from "lucide-r
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useAuth } from "@/contexts/AuthContext";
 import { showSuccess, showError } from "@/utils/toast";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 // Profile form schema
 const profileFormSchema = z.object({
@@ -54,6 +64,8 @@ const Profile = () => {
   const [savingContact, setSavingContact] = useState<number | null>(null);
   const [showNameSaveMessage, setShowNameSaveMessage] = useState(false);
   const [originalFullName, setOriginalFullName] = useState("");
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [deleteAction, setDeleteAction] = useState<{type: 'telegram' | 'email', index: number} | null>(null);
 
   const isDemo = profile?.is_demo || false;
 
@@ -213,13 +225,30 @@ const Profile = () => {
 
   // Remove a telegram ID field
   const removeTelegramId = (index: number) => {
+    // For newly added unsaved rows, remove directly without confirmation
     const currentIds = profileForm.getValues("telegramIds");
-    profileForm.setValue("telegramIds", currentIds.filter((_, i) => i !== index));
-    if (editingTelegramId === index) {
-      setEditingTelegramId(null);
-    } else if (editingTelegramId !== null && editingTelegramId > index) {
-      setEditingTelegramId(editingTelegramId - 1);
+    const currentItem = currentIds[index];
+    
+    // If it's a new unsaved item (empty handle), remove directly
+    if (!currentItem.handle && !currentItem.label) {
+      profileForm.setValue("telegramIds", currentIds.filter((_, i) => i !== index));
+      if (editingTelegramId === index) {
+        setEditingTelegramId(null);
+      } else if (editingTelegramId !== null && editingTelegramId > index) {
+        setEditingTelegramId(editingTelegramId - 1);
+      }
+      return;
     }
+    
+    // For saved items, show confirmation dialog
+    if (isDemo) {
+      // In demo mode, show tooltip instead of dialog
+      showError("Delete is disabled for demo accounts");
+      return;
+    }
+    
+    setDeleteAction({ type: 'telegram', index });
+    setShowDeleteDialog(true);
   };
 
   // Start editing a telegram ID
@@ -375,13 +404,30 @@ const Profile = () => {
 
   // Remove a secondary contact field
   const removeSecondaryContact = (index: number) => {
+    // For newly added unsaved rows, remove directly without confirmation
     const currentContacts = profileForm.getValues("secondaryEmails");
-    profileForm.setValue("secondaryEmails", currentContacts.filter((_, i) => i !== index));
-    if (editingSecondaryEmail === index) {
-      setEditingSecondaryEmail(null);
-    } else if (editingSecondaryEmail !== null && editingSecondaryEmail > index) {
-      setEditingSecondaryEmail(editingSecondaryEmail - 1);
+    const currentItem = currentContacts[index];
+    
+    // If it's a new unsaved item (empty fields), remove directly
+    if (!currentItem.name && !currentItem.email && !currentItem.relationship) {
+      profileForm.setValue("secondaryEmails", currentContacts.filter((_, i) => i !== index));
+      if (editingSecondaryEmail === index) {
+        setEditingSecondaryEmail(null);
+      } else if (editingSecondaryEmail !== null && editingSecondaryEmail > index) {
+        setEditingSecondaryEmail(editingSecondaryEmail - 1);
+      }
+      return;
     }
+    
+    // For saved items, show confirmation dialog
+    if (isDemo) {
+      // In demo mode, show tooltip instead of dialog
+      showError("Delete is disabled for demo accounts");
+      return;
+    }
+    
+    setDeleteAction({ type: 'email', index });
+    setShowDeleteDialog(true);
   };
 
   // Start editing a secondary contact
@@ -449,6 +495,42 @@ const Profile = () => {
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     profileForm.setValue("full_name", e.target.value);
     setShowNameSaveMessage(e.target.value !== originalFullName);
+  };
+
+  // Confirm delete action
+  const confirmDelete = async () => {
+    if (!deleteAction) return;
+    
+    if (deleteAction.type === 'telegram') {
+      const currentIds = profileForm.getValues("telegramIds");
+      profileForm.setValue("telegramIds", currentIds.filter((_, i) => i !== deleteAction.index));
+      if (editingTelegramId === deleteAction.index) {
+        setEditingTelegramId(null);
+      } else if (editingTelegramId !== null && editingTelegramId > deleteAction.index) {
+        setEditingTelegramId(editingTelegramId - 1);
+      }
+    } else {
+      const currentContacts = profileForm.getValues("secondaryEmails");
+      profileForm.setValue("secondaryEmails", currentContacts.filter((_, i) => i !== deleteAction.index));
+      if (editingSecondaryEmail === deleteAction.index) {
+        setEditingSecondaryEmail(null);
+      } else if (editingSecondaryEmail !== null && editingSecondaryEmail > deleteAction.index) {
+        setEditingSecondaryEmail(editingSecondaryEmail - 1);
+      }
+    }
+    
+    // Save the changes
+    await updateProfileContacts();
+    
+    // Reset delete action
+    setDeleteAction(null);
+    setShowDeleteDialog(false);
+  };
+
+  // Cancel delete action
+  const cancelDelete = () => {
+    setDeleteAction(null);
+    setShowDeleteDialog(false);
   };
 
   return (
@@ -981,6 +1063,27 @@ const Profile = () => {
           </TabsContent>
         </Tabs>
       </div>
+      
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirm Delete</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this contact? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={cancelDelete}>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={confirmDelete}
+              className="bg-[#dc2626] hover:bg-[#b91c1c] text-white"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </MainLayout>
   );
 };

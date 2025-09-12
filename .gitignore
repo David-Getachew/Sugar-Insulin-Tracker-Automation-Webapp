@@ -7,24 +7,45 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
-*.local
+# Dependencies
+node_modules/
+npm_modules/
+yarn_modules/
+.pnpm-store/
 
-# Editor directories and files
+# Build outputs
+dist/
+dist-ssr/
+build/
+.out/
+.next/
+.vercel/
+
+# Local env files
+.env
+.env.local
+.env.development
+.env.production
+
+# IDE and editor files
 .vscode/*
 !.vscode/extensions.json
-.idea
+.idea/
+*.swp
+*.swo
+*~
 .DS_Store
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
-*.sw?
+*.plist
+*.sublime-project
+*.sublime-workspace
 
-# Env files
-.env
-.env.local
-.env.development
-.env.production
+# OS generated files
+Thumbs.db
+ehthumbs.db
+Icon?
+*.stackdump
+[Dd]esktop.ini

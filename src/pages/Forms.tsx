@@ -251,8 +251,8 @@ const Forms = () => {
         event_date: format(values.date, 'yyyy-MM-dd'),
         event_time: values.time,
         sugar_level: values.sugarLevel,
-        symptoms: JSON.stringify(allSymptoms), // Send as JSON string
-        actions_taken: allActions.length > 0 ? JSON.stringify(allActions) : null, // Send as JSON string or null
+        symptoms: allSymptoms, // Pass as array directly
+        actions_taken: allActions.length > 0 ? allActions : null, // Pass as array or null directly
         notes: values.notes || null,
       };
 
@@ -276,43 +276,6 @@ const Forms = () => {
       }
       
       if (emergency) {
-        // Send to N8N webhook if available
-        const webhookUrl = import.meta.env.VITE_N8N_EMERGENCY_WEBHOOK_URL;
-        if (webhookUrl) {
-          try {
-            // Log in dev mode
-            if (import.meta.env.DEV) {
-              console.log('Sending webhook to:', webhookUrl);
-            }
-            
-            const response = await fetch(webhookUrl, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({
-                emergency,
-                user: {
-                  id: profile?.user_id,
-                  name: profile?.full_name,
-                  email: profile?.email,
-                },
-                timestamp: new Date().toISOString(),
-              }),
-            });
-            
-            if (!response.ok) {
-              console.error('Webhook delivery failed:', response.status, response.statusText);
-              showError("Webhook delivery failed, report saved");
-            } else {
-              console.log('Emergency notification sent to N8N webhook');
-            }
-          } catch (webhookError) {
-            console.error('Failed to send emergency notification:', webhookError);
-            showError("Webhook delivery failed, report saved");
-          }
-        }
-        
         // Show success modal
         setShowSuccessModal(true);
         emergencyForm.reset({

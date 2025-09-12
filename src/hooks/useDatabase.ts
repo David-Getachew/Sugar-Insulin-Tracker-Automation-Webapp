@@ -104,16 +104,13 @@ export const useDatabase = () => {
     
     setLoading(true);
     try {
-      // Ensure symptoms and actions_taken are properly formatted as arrays
+      // Pass data as arrays directly since the database expects arrays, not JSON strings
       const emergencyData = {
         ...emergency,
         user_id: user.id,
-        // Convert symptoms to array if it's a string
-        symptoms: Array.isArray(emergency.symptoms) ? emergency.symptoms : [emergency.symptoms].filter(Boolean),
-        // Convert actions_taken to array if it's a string, or keep as null if empty
-        actions_taken: emergency.actions_taken 
-          ? (Array.isArray(emergency.actions_taken) ? emergency.actions_taken : [emergency.actions_taken].filter(Boolean))
-          : null
+        // Keep symptoms and actions_taken as arrays since the DB expects arrays
+        symptoms: emergency.symptoms,
+        actions_taken: emergency.actions_taken
       };
 
       console.log('Inserting emergency data:', emergencyData);
@@ -138,44 +135,70 @@ export const useDatabase = () => {
         return null;
       }
       
-      // Send webhook after successful insertion
+      // Send webhook after successful insertion using the inserted row data
       if (data) {
         const webhookUrl = import.meta.env.VITE_N8N_EMERGENCY_WEBHOOK_URL;
         if (webhookUrl) {
           try {
-            // Format the data as required
+            // Format the data as required - the data from DB should already be in the correct format
+            const webhookData = {
+              ...data,
+              // Keep symptoms and actions_taken as arrays since the DB stores them as arrays
+              symptoms: data.symptoms,
+              actions_taken: data.actions_taken
+            };
+            
             const webhookPayload = {
-              record: data
+              record: webhookData,
+              timestamp: new Date().toISOString()
             };
             
             console.log('Sending webhook payload:', webhookPayload);
             
-            // First attempt
-            let response = await fetch(webhookUrl, {
-              method: 'POST',
-              headers: {'Content-Type':'application/json'},
-              body: JSON.stringify(webhookPayload)
-            });
-            
-            // Retry once on non-2xx
-            if (!response.ok) {
-              console.log('First webhook attempt failed, retrying...');
-              response = await fetch(webhookUrl, {
+            // Helper function for webhook POST with retry
+            const postToWebhook = async (url: string, body: any) => {
+              // First attempt
+              let response = await fetch(url, {
                 method: 'POST',
-                headers: {'Content-Type':'application/json'},
-                body: JSON.stringify(webhookPayload)
+                headers: {
+                  'Content-Type': 'application/json',
+                  'x-webhook-secret': '4sD8fJk9PqZ!vT2LmN6xW'  // Add the webhook secret header
+                },
+                body: JSON.stringify(body)
               });
               
+              // Retry once on network failure
               if (!response.ok) {
-                console.error('Webhook delivery failed after retry:', response.status, response.statusText);
-                showError("Webhook delivery failed, but report saved.");
-              } else {
-                console.log('Emergency notification sent to N8N webhook on retry');
+                console.log('First webhook attempt failed, retrying...');
+                await new Promise(resolve => setTimeout(resolve, 1000)); // 1 second delay
+                response = await fetch(url, {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'x-webhook-secret': '4sD8fJk9PqZ!vT2LmN6xW'  // Add the webhook secret header
+                  },
+                  body: JSON.stringify(body)
+                });
               }
+              
+              return response;
+            };
+            
+            const response = await postToWebhook(webhookUrl, webhookPayload);
+            
+            if (!response.ok) {
+              console.error('Webhook delivery failed after retry:', response.status, response.statusText);
+              showError("Webhook delivery failed, but report saved.");
             } else {
-              console.log('Emergency notification sent to N8N webhook');
+              // Log response in dev mode
+              if (import.meta.env.DEV) {
+                const responseBody = await response.text();
+                console.log('Emergency notification sent to N8N webhook. Status:', response.status, 'Response:', responseBody);
+              } else {
+                console.log('Emergency notification sent to N8N webhook. Status:', response.status);
+              }
             }
-          } catch (webhookError) {
+          } catch (webhookError: any) {
             console.error('Failed to send emergency notification:', webhookError);
             showError("Webhook delivery failed, but report saved.");
           }

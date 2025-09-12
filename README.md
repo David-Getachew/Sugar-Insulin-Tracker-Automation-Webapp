@@ -1,94 +1,16 @@
-# Insulin Tracker — v2.0.0 (Integrated Release)
+# Sugar Insulin Tracker
+
+A modern web application for tracking blood sugar levels and insulin dosage with full Supabase backend integration and demo read-only functionality.
 
 ## Overview
-This release is the integrated frontend for the Insulin Tracker web app.
 
-Stack: React 18 + TypeScript, Vite, Tailwind CSS, shadcn/ui, React Hook Form + Zod, TanStack Query, React Router, Recharts. Backend: Supabase (auth, tables, RLS). n8n webhook integration for emergency events.
+This application provides a comprehensive solution for monitoring and managing diabetes-related data. It features:
 
-## Quickstart
-1. Clone repo:
-
-```
-git clone https://github.com/David-Getachew/Sugar-Insulin-Tracker-Automation-Webapp
-cd <repo>
-```
-
-2. Create branch or use the release branch:
-
-```
-git checkout release/v2.0.0
-```
-
-3. Copy environment template:
-
-```
-cp env.example .env
-```
-
-Fill `.env` values (VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY, N8N_EMERGENCY_WEBHOOK_URL, DEMO_USER_EMAIL, DEMO_USER_PASSWORD).
-
-4. Install dependencies and run:
-
-```
-npm install
-npm run dev
-```
-
-or
-
-```
-pnpm install
-pnpm dev
-```
-
-## Security note
-- Do not commit service-role keys or other secrets.
-- If any keys were accidentally committed earlier, rotate them immediately and report before any history rewrite.
-
-## Release: v2.0.0
-This tag contains the integrated app plus the fixes listed in CHANGELOG.md.
-
-## How to test (basic)
-- Login with `DEMO_USER_EMAIL` to verify read-only demo behavior.
-- Login with a real/test account to confirm full functionality: dashboard charts, daily form upsert, emergency event insertion and webhook POST, profile edits.
-- See CHANGELOG.md for full list of implemented features and fixes.
-
-## Versioning
-This repository uses semantic versioning. Create patch tags for minor fixes (v2.0.x), minor features as v2.x.0, major changes as v3.0.0, etc.
-
-# Sugar Insulin Tracker v2.0.0 - Supabase Integration
-
-A modern web application for tracking blood sugar levels and insulin dosage, now with full Supabase backend integration and demo read-only functionality.
-
-## 🚀 Latest Updates
-
-- ✅ **Full Supabase Integration**: Authentication, real-time data, and user management
-- ✅ **Demo Read-Only Mode**: Safe demo accounts with visual indicators
-- ✅ **Emergency Webhooks**: N8N integration for emergency notifications
-- ✅ **User-Scoped Data**: All queries properly filtered by authenticated user
-- ✅ **Production Ready**: Comprehensive QA testing and validation
-
-## Features
-
-### Core Functionality
-- **Supabase Authentication**: Secure user login and session management
-- **Real-Time Data Sync**: Live updates with Supabase real-time subscriptions
-- **User Profile Management**: Comprehensive user settings and contact management
-- **Dashboard Analytics**: Visual charts for tracking sugar levels and insulin doses over time
-- **Data Entry Forms**: Easy-to-use forms for logging readings and emergency situations
-- **Emergency Reporting**: Automatic webhook notifications for emergency situations
-
-### Demo & Security Features
-- **Demo Read-Only Mode**: Safe demonstration with clear visual indicators
-- **User Data Isolation**: All queries scoped to authenticated user
-- **Protected Routes**: Automatic redirection for unauthenticated users
-- **Environment-Based Configuration**: Secure credential management
-
-### UI & Experience
-- **Interactive Charts**: Built with Recharts for clear data visualization
-- **Responsive Design**: Mobile-first design using Tailwind CSS
-- **Modern UI Components**: Powered by shadcn/ui component library
-- **Type Safety**: Full TypeScript implementation
+- Real-time blood sugar and insulin tracking
+- Emergency event reporting with webhook notifications
+- User profile management with contact information
+- Data visualization through interactive charts
+- Demo mode for safe testing and evaluation
 
 ## Tech Stack
 
@@ -107,8 +29,8 @@ A modern web application for tracking blood sugar levels and insulin dosage, now
 
 ### 1. Clone and Install
 ```bash
-git clone https://github.com/David-Getachew/Sugar-Insulin-Tracker-Automation-Webapp-FrontEndOnly.git
-cd Sugar-Insulin-Tracker-Automation-Webapp-FrontEndOnly
+git clone https://github.com/David-Getachew/Sugar-Insulin-Tracker-Automation-Webapp.git
+cd Sugar-Insulin-Tracker-Automation-Webapp
 pnpm install  # or npm install
 ```
 
@@ -130,17 +52,10 @@ DEMO_USER_EMAIL=demo@example.com
 DEMO_USER_PASSWORD=password
 
 # N8N Webhook URL for Emergency Notifications
-N8N_EMERGENCY_WEBHOOK_URL=https://your-n8n-instance.com/webhook/emergency
+VITE_N8N_EMERGENCY_WEBHOOK_URL=https://your-n8n-instance.com/webhook/emergency
 ```
 
-### 3. Supabase Setup
-Ensure your Supabase project has the following tables with RLS enabled:
-
-- `profiles` - User profile information
-- `daily_readings` - Daily sugar and insulin readings
-- `emergencies` - Emergency situation records
-
-### 4. Start Development
+### 3. Start Development
 ```bash
 pnpm dev  # Starts server on http://localhost:8080
 ```
@@ -155,26 +70,15 @@ pnpm preview      # Preview production build
 pnpm lint         # Run ESLint
 ```
 
-## Quality Assurance
+## Features
 
-Run the automated QA script to verify your setup:
-
-```bash
-# Linux/macOS
-./qa.sh
-
-# Windows
-.\qa.ps1
-```
-
-Or check the comprehensive QA report: `QA_REPORT.md`
-
-## Pages & Features
-
-- **Login** (`/login`) - Supabase authentication with demo account support
-- **Dashboard** (`/dashboard`) - Real-time analytics with charts and data visualization
-- **Forms** (`/forms`) - Data entry for daily readings and emergency situations
-- **Profile** (`/profile`) - User settings, contact management, and account preferences
+### Core Functionality
+- **Supabase Authentication**: Secure user login and session management
+- **Real-Time Data Sync**: Live updates with Supabase real-time subscriptions
+- **User Profile Management**: Comprehensive user settings and contact management
+- **Dashboard Analytics**: Visual charts for tracking sugar levels and insulin doses over time
+- **Data Entry Forms**: Easy-to-use forms for logging readings and emergency situations
+- **Emergency Reporting**: Automatic webhook notifications for emergency situations
 
 ### Demo Mode
 When logged in with a demo account (`is_demo: true`), users will see:
@@ -183,99 +87,9 @@ When logged in with a demo account (`is_demo: true`), users will see:
 - 📊 Sample data for demonstration
 - 🚫 No data persistence
 
-### Emergency Features
-- Automatic webhook notifications to N8N
-- Database logging of all emergency events
-- Medication tracking and symptom documentation
+## Security Note
+- Do not commit service-role keys or other secrets.
+- If any keys were accidentally committed earlier, rotate them immediately.
 
-## Authentication & Security
-
-- **Supabase Auth**: Secure authentication with session management
-- **Protected Routes**: Automatic redirection for unauthenticated users
-- **User Data Isolation**: All database queries scoped to `user_id`
-- **Demo Account Safety**: Read-only mode prevents data corruption
-- **Environment Security**: Credentials managed through environment variables
-
-## Development
-
-This project uses:
-- **ESLint** for code linting
-- **TypeScript** for type checking
-- **Tailwind CSS** for styling
-- **Vite** for fast development and building
-- **Supabase** for backend services
-- **Custom Hooks** for database operations and authentication
-
-### Key Components
-- `src/contexts/AuthContext.tsx` - Authentication state management
-- `src/hooks/useDatabase.ts` - Database operations with user scoping
-- `src/lib/supabase.ts` - Supabase client configuration
-- `src/components/ProtectedRoute.tsx` - Route protection
-- `src/types/database.ts` - TypeScript database types
-
-## Deployment
-
-### Environment Setup
-1. Configure your production Supabase project
-2. Set up N8N webhook endpoints
-3. Create demo user accounts with `is_demo: true`
-4. Deploy environment variables
-
-### Build & Deploy
-```bash
-pnpm build
-```
-
-The built files will be in the `dist` directory. The project is configured for Vercel deployment with the included `vercel.json`.
-
-### Database Requirements
-Ensure your Supabase database has:
-- Row Level Security (RLS) enabled
-- Proper user policies for data isolation  
-- Demo user accounts configured
-- Webhook endpoints tested
-
-## Branch Information
-
-This integration was developed on the `feature/supabase-integration-gemini` branch, which includes:
-
-- Complete Supabase integration
-- Demo read-only functionality
-- Emergency webhook integration
-- Comprehensive QA testing
-- Updated documentation
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Run QA tests (`./qa.sh` or `./qa.ps1`)
-5. Push to the branch (`git push origin feature/amazing-feature`)
-6. Open a Pull Request
-
-## Files Added/Modified
-
-### New Files
-- `src/lib/supabase.ts` - Supabase client
-- `src/contexts/AuthContext.tsx` - Authentication context
-- `src/components/ProtectedRoute.tsx` - Route protection
-- `src/hooks/useDatabase.ts` - Database operations
-- `src/types/database.ts` - Database types
-- `.env` & `.env.example` - Environment configuration
-- `qa.sh` & `qa.ps1` - QA automation scripts
-- `QA_REPORT.md` - Comprehensive testing report
-
-### Modified Files
-- `src/App.tsx` - Added AuthProvider and protected routes
-- `src/pages/Login.tsx` - Supabase authentication integration
-- `src/pages/Forms.tsx` - Database integration and demo mode
-- `src/pages/Profile.tsx` - User profile management
-- `src/pages/Dashboard.tsx` - Real data integration
-- `src/components/layout/MainLayout.tsx` - Authentication-aware navigation
-- Chart and table components - Real data support
-
-## 📄 License
-
-
-This project is open source and available under the MIT License.
+## Changelog
+For detailed release notes, please see [CHANGELOG.md](CHANGELOG.md)

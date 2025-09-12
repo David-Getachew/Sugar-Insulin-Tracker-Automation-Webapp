@@ -81,7 +81,7 @@ const MainLayout = ({ children }: MainLayoutProps) => {
 
         <footer className="bg-white border-t border-gray-200 py-4">
           <div className="container mx-auto px-4 text-center text-sm text-[#475569]">
-            Built by Dawit Getachew — © 2025 Sugar & Insulin Tracker ·{' '}
+            Built by Dawit Getachew — © 2025 Automation & Health Apps ·{' '}
             <a 
               href="https://github.com/David-Getachew" 
               target="_blank" 
