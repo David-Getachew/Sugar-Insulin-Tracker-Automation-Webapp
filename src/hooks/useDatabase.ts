@@ -137,7 +137,9 @@ export const useDatabase = () => {
       
       // Send webhook after successful insertion using the inserted row data
       if (data) {
-        const webhookUrl = import.meta.env.VITE_N8N_EMERGENCY_WEBHOOK_URL;
+        // Use the local API proxy instead of calling n8n directly
+        const webhookUrl = '/api/webhook-proxy';
+        
         if (webhookUrl) {
           try {
             // Format the data as required - the data from DB should already be in the correct format
@@ -162,7 +164,6 @@ export const useDatabase = () => {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',
-                  'x-webhook-secret': '4sD8fJk9PqZ!vT2LmN6xW'  // Add the webhook secret header
                 },
                 body: JSON.stringify(body)
               });
@@ -175,7 +176,6 @@ export const useDatabase = () => {
                   method: 'POST',
                   headers: {
                     'Content-Type': 'application/json',
-                    'x-webhook-secret': '4sD8fJk9PqZ!vT2LmN6xW'  // Add the webhook secret header
                   },
                   body: JSON.stringify(body)
                 });
